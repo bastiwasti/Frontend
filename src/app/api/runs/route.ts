@@ -1,11 +1,10 @@
 import Database from 'better-sqlite3';
 import { NextResponse } from 'next/server';
-
-const dbPath = '/root/projects/WebScraper/data/events.db';
+import { DB_PATH } from '@/config/db';
 
 export async function GET() {
   try {
-    const db = new Database(dbPath, { readonly: true });
+    const db = new Database(DB_PATH, { readonly: true });
     const runs = db.prepare(`
       SELECT r.*, 
              s.duration, 

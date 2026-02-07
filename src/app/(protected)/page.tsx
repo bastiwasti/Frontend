@@ -13,11 +13,17 @@ interface Event {
   name: string;
   description: string | null;
   location: string | null;
+  city: string | null;
   date: string | null;
   time: string | null;
   category: string | null;
   source: string | null;
   created_at: string;
+  agent: string | null;
+  run_cities: string | null;
+  run_duration: number | null;
+  run_events_found: number | null;
+  run_valid_events: number | null;
 }
 
 interface Run {
@@ -27,7 +33,9 @@ interface Run {
 
 interface FilterState {
   run_id: number | null;
+  agent: string;
   location: string;
+  city: string;
   date: string;
   time: string;
   category: string;
@@ -41,7 +49,9 @@ export default function Home() {
 
   const [filters, setFilters] = useState<FilterState>({
     run_id: null,
+    agent: '',
     location: '',
+    city: '',
     date: '',
     time: '',
     category: '',
@@ -68,8 +78,16 @@ export default function Home() {
     fetchData();
   }, []);
 
+  const uniqueAgents = useMemo(() => {
+    return Array.from(new Set(events.map(e => e.agent).filter((a): a is string => Boolean(a)))).sort();
+  }, [events]);
+
   const uniqueLocations = useMemo(() => {
     return Array.from(new Set(events.map(e => e.location).filter((l): l is string => Boolean(l)))).sort();
+  }, [events]);
+
+  const uniqueCities = useMemo(() => {
+    return Array.from(new Set(events.map(e => e.city).filter((c): c is string => Boolean(c)))).sort();
   }, [events]);
 
   const uniqueCategories = useMemo(() => {
@@ -91,7 +109,9 @@ export default function Home() {
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
       if (filters.run_id !== null && event.run_id !== filters.run_id) return false;
+      if (filters.agent && event.agent !== filters.agent) return false;
       if (filters.location && event.location !== filters.location) return false;
+      if (filters.city && event.city !== filters.city) return false;
       if (filters.date && event.date !== filters.date) return false;
       if (filters.time && event.time !== filters.time) return false;
       if (filters.category && event.category !== filters.category) return false;
@@ -103,7 +123,9 @@ export default function Home() {
   const clearAllFilters = () => {
     setFilters({
       run_id: null,
+      agent: '',
       location: '',
+      city: '',
       date: '',
       time: '',
       category: '',
@@ -143,7 +165,7 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Run ID</label>
                 <Select value={filters.run_id?.toString() || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, run_id: v === 'all' ? null : Number(v) }))}>
@@ -162,6 +184,21 @@ export default function Home() {
               </div>
 
               <div className="space-y-2">
+                <label className="text-sm font-medium">Agent</label>
+                <Select value={filters.agent || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, agent: v === 'all' ? '' : v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All agents" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All agents</SelectItem>
+                    {uniqueAgents.map(agent => (
+                      <SelectItem key={agent} value={agent}>{agent}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Location</label>
                 <Select value={filters.location || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, location: v === 'all' ? '' : v }))}>
                   <SelectTrigger>
@@ -171,6 +208,21 @@ export default function Home() {
                     <SelectItem value="all">All locations</SelectItem>
                     {uniqueLocations.map(location => (
                       <SelectItem key={location} value={location}>{location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">City</label>
+                <Select value={filters.city || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, city: v === 'all' ? '' : v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All cities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All cities</SelectItem>
+                    {uniqueCities.map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -266,28 +318,53 @@ export default function Home() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 text-sm">
-                    {event.run_id && (
+                    {event.agent && (
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Run ID:</span>
-                        <span className="text-gray-600 dark:text-gray-400">{event.run_id}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Agent:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{event.agent}</span>
                       </div>
                     )}
-                    {event.location && (
+                    {event.run_cities && (
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Location:</span>
-                        <span className="text-gray-600 dark:text-gray-400">{event.location}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Run Location:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{event.run_cities}</span>
                       </div>
                     )}
-                    {event.date && (
+                    {event.run_events_found !== null && (
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Date:</span>
-                        <span className="text-gray-600 dark:text-gray-400">{event.date}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Run Stats:</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {event.run_events_found} found / {event.run_valid_events || 0} valid
+                        </span>
                       </div>
                     )}
-                    {event.time && (
+                    {event.run_duration && (
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Time:</span>
-                        <span className="text-gray-600 dark:text-gray-400">{event.time}</span>
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Scrape Duration:</span>
+                        <span className="text-gray-600 dark:text-gray-400">{event.run_duration.toFixed(1)}s</span>
+                      </div>
+                    )}
+                    {event.created_at && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Discovered:</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {(() => {
+                            const now = new Date();
+                            const created = new Date(event.created_at);
+                            const diffMs = now.getTime() - created.getTime();
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffDays = Math.floor(diffHours / 24);
+                            
+                            if (diffDays > 0) {
+                              return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                            } else if (diffHours > 0) {
+                              return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                            } else {
+                              const diffMins = Math.floor(diffMs / (1000 * 60));
+                              return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                            }
+                          })()}
+                        </span>
                       </div>
                     )}
                     {event.category && (
