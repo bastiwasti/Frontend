@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         LEFT JOIN runs r ON e.run_id = r.id
         LEFT JOIN status s ON r.id = s.run_id
         WHERE e.run_id = ?
-        ORDER BY e.created_at DESC
+        ORDER BY e.start_datetime ASC
       `).all(Number(runId));
     } else {
       events = db.prepare(`
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
         FROM events e
         LEFT JOIN runs r ON e.run_id = r.id
         LEFT JOIN status s ON r.id = s.run_id
-        ORDER BY e.created_at DESC
+        ORDER BY e.start_datetime ASC
       `).all();
     }
 

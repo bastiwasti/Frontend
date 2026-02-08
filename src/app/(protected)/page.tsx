@@ -4,8 +4,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Filter } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { X, Filter, ExternalLink, CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, isSameDay, isValid } from 'date-fns';
 
 interface Event {
   id: number;
@@ -14,16 +16,11 @@ interface Event {
   description: string | null;
   location: string | null;
   city: string | null;
-  date: string | null;
-  time: string | null;
+  start_datetime: string | null;
+  end_datetime: string | null;
   category: string | null;
   source: string | null;
   created_at: string;
-  agent: string | null;
-  run_cities: string | null;
-  run_duration: number | null;
-  run_events_found: number | null;
-  run_valid_events: number | null;
 }
 
 interface Run {
@@ -31,15 +28,18 @@ interface Run {
   agent: string;
 }
 
+type DateRange = {
+  from: Date | undefined;
+  to?: Date | undefined;
+};
+
 interface FilterState {
   run_id: number | null;
-  agent: string;
   location: string;
   city: string;
-  date: string;
-  time: string;
   category: string;
   source: string;
+  dateRange: DateRange;
 }
 
 export default function Home() {
@@ -49,13 +49,11 @@ export default function Home() {
 
   const [filters, setFilters] = useState<FilterState>({
     run_id: null,
-    agent: '',
     location: '',
     city: '',
-    date: '',
-    time: '',
     category: '',
     source: '',
+    dateRange: { from: undefined },
   });
 
   useEffect(() => {
@@ -78,10 +76,6 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const uniqueAgents = useMemo(() => {
-    return Array.from(new Set(events.map(e => e.agent).filter((a): a is string => Boolean(a)))).sort();
-  }, [events]);
-
   const uniqueLocations = useMemo(() => {
     return Array.from(new Set(events.map(e => e.location).filter((l): l is string => Boolean(l)))).sort();
   }, [events]);
@@ -98,42 +92,80 @@ export default function Home() {
     return Array.from(new Set(events.map(e => e.source).filter((s): s is string => Boolean(s)))).sort();
   }, [events]);
 
-  const uniqueTimes = useMemo(() => {
-    return Array.from(new Set(events.map(e => e.time).filter((t): t is string => Boolean(t)))).sort();
-  }, [events]);
-
-  const uniqueDates = useMemo(() => {
-    return Array.from(new Set(events.map(e => e.date).filter((d): d is string => Boolean(d)))).sort().slice(0, 20);
-  }, [events]);
-
   const filteredEvents = useMemo(() => {
-    return events.filter(event => {
-      if (filters.run_id !== null && event.run_id !== filters.run_id) return false;
-      if (filters.agent && event.agent !== filters.agent) return false;
-      if (filters.location && event.location !== filters.location) return false;
-      if (filters.city && event.city !== filters.city) return false;
-      if (filters.date && event.date !== filters.date) return false;
-      if (filters.time && event.time !== filters.time) return false;
-      if (filters.category && event.category !== filters.category) return false;
-      if (filters.source && event.source !== filters.source) return false;
-      return true;
-    });
+    return events
+      .filter(event => {
+        if (filters.run_id !== null && event.run_id !== filters.run_id) return false;
+        if (filters.location && event.location !== filters.location) return false;
+        if (filters.city && event.city !== filters.city) return false;
+        if (filters.category && event.category !== filters.category) return false;
+        if (filters.source && event.source !== filters.source) return false;
+        
+        if (filters.dateRange.from || filters.dateRange.to) {
+          const startDate = event.start_datetime ? new Date(event.start_datetime) : null;
+          if (!startDate || !isValid(startDate)) return false;
+          
+          if (filters.dateRange.from && startDate < filters.dateRange.from) return false;
+          if (filters.dateRange.to && startDate > filters.dateRange.to) return false;
+        }
+        
+        return true;
+      })
+      .sort((a, b) => {
+        const dateA = a.start_datetime ? new Date(a.start_datetime) : new Date(0);
+        const dateB = b.start_datetime ? new Date(b.start_datetime) : new Date(0);
+        return dateA.getTime() - dateB.getTime();
+      });
   }, [events, filters]);
 
   const clearAllFilters = () => {
     setFilters({
       run_id: null,
-      agent: '',
       location: '',
       city: '',
-      date: '',
-      time: '',
       category: '',
       source: '',
+      dateRange: { from: undefined },
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some(v => v !== '' && v !== null && (typeof v !== 'number' || v !== 0));
+  const hasActiveFilters = Object.values(filters).some(v => {
+    if (typeof v === 'object' && v !== null && 'from' in v) {
+      return (v as { from: Date | undefined; to: Date | undefined }).from !== undefined || 
+             (v as { from: Date | undefined; to: Date | undefined }).to !== undefined;
+    }
+    return v !== '' && v !== null && (typeof v !== 'number' || v !== 0);
+  });
+
+  const formatEventDateTime = (startDatetime: string | null, endDatetime: string | null) => {
+    if (!startDatetime) return { dateRange: null, timeRange: null };
+
+    const start = new Date(startDatetime);
+    const end = endDatetime ? new Date(endDatetime) : null;
+
+    if (!isValid(start)) return { dateRange: null, timeRange: null };
+
+    const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
+    const formatTime = (date: Date) => format(date, 'h:mm a');
+
+    let dateRange: string;
+    let timeRange: string;
+
+    if (end && isValid(end)) {
+      if (isSameDay(start, end)) {
+        dateRange = formatDate(start);
+        timeRange = `${formatTime(start)} - ${formatTime(end)}`;
+      } else {
+        dateRange = `${formatDate(start)} - ${formatDate(end)}`;
+        timeRange = `${formatTime(start)} - ${formatTime(end)}`;
+      }
+    } else {
+      dateRange = formatDate(start);
+      timeRange = formatTime(start);
+    }
+
+    return { dateRange, timeRange };
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
@@ -165,7 +197,7 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-8">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Run ID</label>
                 <Select value={filters.run_id?.toString() || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, run_id: v === 'all' ? null : Number(v) }))}>
@@ -178,21 +210,6 @@ export default function Home() {
                       <SelectItem key={run.id} value={run.id.toString()}>
                         Run {run.id} - {run.agent}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Agent</label>
-                <Select value={filters.agent || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, agent: v === 'all' ? '' : v }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All agents" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All agents</SelectItem>
-                    {uniqueAgents.map(agent => (
-                      <SelectItem key={agent} value={agent}>{agent}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -229,33 +246,33 @@ export default function Home() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date</label>
-                <Select value={filters.date || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, date: v === 'all' ? '' : v }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All dates" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All dates</SelectItem>
-                    {uniqueDates.map(date => (
-                      <SelectItem key={date} value={date}>{date}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Time</label>
-                <Select value={filters.time || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, time: v === 'all' ? '' : v }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All times" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All times</SelectItem>
-                    {uniqueTimes.map(time => (
-                      <SelectItem key={time} value={time}>{time}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-medium">Date Range</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {filters.dateRange.from ? (
+                        filters.dateRange.to ? (
+                          <>
+                            {format(filters.dateRange.from, 'MMM d, yyyy')} - {format(filters.dateRange.to, 'MMM d, yyyy')}
+                          </>
+                        ) : (
+                          format(filters.dateRange.from, 'MMM d, yyyy')
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        selected={filters.dateRange}
+                        onSelect={(range) => setFilters(prev => ({ ...prev, dateRange: range || { from: undefined } }))}
+                        numberOfMonths={2}
+                      />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
@@ -308,87 +325,67 @@ export default function Home() {
           </Card>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredEvents.map((event) => (
-              <Card key={event.id} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                <CardHeader>
-                  <CardTitle className="line-clamp-2 text-lg">{event.name}</CardTitle>
-                  {event.description && (
-                    <CardDescription className="line-clamp-3">{event.description}</CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    {event.agent && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Agent:</span>
-                        <span className="text-gray-600 dark:text-gray-400">{event.agent}</span>
-                      </div>
+            {filteredEvents.map((event) => {
+              const { dateRange, timeRange } = formatEventDateTime(event.start_datetime, event.end_datetime);
+              
+              return (
+                <Card key={event.id} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2 text-lg">{event.name}</CardTitle>
+                    {event.description && (
+                      <CardDescription className="line-clamp-3">{event.description}</CardDescription>
                     )}
-                    {event.run_cities && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Run Location:</span>
-                        <span className="text-gray-600 dark:text-gray-400">{event.run_cities}</span>
-                      </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      {event.location && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Location:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{event.location}</span>
+                        </div>
+                      )}
+                      {event.city && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">City:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{event.city}</span>
+                        </div>
+                      )}
+                      {dateRange && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Date:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{dateRange}</span>
+                        </div>
+                      )}
+                      {timeRange && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Time:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{timeRange}</span>
+                        </div>
+                      )}
+                      {event.category && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Category:</span>
+                          <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-xs capitalize">
+                            {event.category}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {event.source && (
+                      <a
+                        href={event.source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
+                      >
+                        View Source
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
                     )}
-                    {event.run_events_found !== null && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Run Stats:</span>
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {event.run_events_found} found / {event.run_valid_events || 0} valid
-                        </span>
-                      </div>
-                    )}
-                    {event.run_duration && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Scrape Duration:</span>
-                        <span className="text-gray-600 dark:text-gray-400">{event.run_duration.toFixed(1)}s</span>
-                      </div>
-                    )}
-                    {event.created_at && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Discovered:</span>
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {(() => {
-                            const now = new Date();
-                            const created = new Date(event.created_at);
-                            const diffMs = now.getTime() - created.getTime();
-                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffDays = Math.floor(diffHours / 24);
-                            
-                            if (diffDays > 0) {
-                              return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-                            } else if (diffHours > 0) {
-                              return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-                            } else {
-                              const diffMins = Math.floor(diffMs / (1000 * 60));
-                              return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-                            }
-                          })()}
-                        </span>
-                      </div>
-                    )}
-                    {event.category && (
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-700 dark:text-gray-300">Category:</span>
-                        <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-xs capitalize">
-                          {event.category}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  {event.source && (
-                    <a
-                      href={event.source}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-4 inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
-                    >
-                      View Source
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

@@ -14,8 +14,9 @@ Events Gallery is a Next.js application that displays scraped events from a SQLi
 
 ### Current Features
 
-- ✅ **Events Display**: Browse events from database with filtering
-- ✅ **Advanced Filtering**: Filter by run, agent, location, city, date, time, category, source
+- ✅ **Events Display**: Browse events from database with smart date/time display
+- ✅ **Advanced Filtering**: Filter by run, location, city, date range (calendar picker), category, source
+- ✅ **Smart Date/Time Display**: Automatically handles single-day and multi-day events with clear formatting
 - ✅ **Status Dashboard**: View run statistics and metadata
 - ✅ **Google Authentication**: Sign in with Google account
 - ✅ **Persistent Sessions**: 7-day session with automatic token refresh
@@ -38,6 +39,7 @@ Events Gallery is a Next.js application that displays scraped events from a SQLi
 - **UI Components**: Radix UI
 - **Authentication**: NextAuth.js (beta)
 - **Database**: SQLite (via better-sqlite3)
+- **Date Handling**: date-fns, react-day-picker
 - **Icons**: Lucide React
 
 ## Getting Started
@@ -171,8 +173,8 @@ CREATE TABLE events (
   description TEXT,
   location TEXT,
   city TEXT,
-  date TEXT,
-  time TEXT,
+  start_datetime DATETIME,
+  end_datetime DATETIME,
   category TEXT,
   source TEXT,
   created_at TEXT
@@ -211,8 +213,9 @@ CREATE TABLE status (
 
 ### Events API
 - **GET** `/api/events` - Retrieve all events
-  - Query param: `run_id` (optional) - Filter by run ID
-  - Returns: Array of event objects with run metadata
+   - Query param: `run_id` (optional) - Filter by run ID
+   - Returns: Array of event objects sorted by start_datetime (ascending)
+   - Event fields: id, run_id, name, description, location, city, start_datetime, end_datetime, category, source, created_at
 
 ### Runs API
 - **GET** `/api/runs` - Retrieve all runs with status
