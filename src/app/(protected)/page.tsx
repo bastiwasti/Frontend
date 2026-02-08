@@ -66,6 +66,7 @@ export default function Home() {
         
         const eventsRes = await fetch('/api/events');
         const eventsData = await eventsRes.json();
+        console.log('Fetched events:', eventsData);
         setEvents(eventsData);
         setIsLoading(false);
       } catch (error) {
@@ -93,7 +94,7 @@ export default function Home() {
   }, [events]);
 
   const filteredEvents = useMemo(() => {
-    return events
+    const filtered = events
       .filter(event => {
         if (filters.run_id !== null && event.run_id !== filters.run_id) return false;
         if (filters.location && event.location !== filters.location) return false;
@@ -116,6 +117,9 @@ export default function Home() {
         const dateB = b.start_datetime ? new Date(b.start_datetime) : new Date(0);
         return dateA.getTime() - dateB.getTime();
       });
+    
+    console.log('Filtered events count:', filtered.length);
+    return filtered;
   }, [events, filters]);
 
   const clearAllFilters = () => {
