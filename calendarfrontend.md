@@ -352,23 +352,27 @@ Show Event Details
 - [x] Add city badges to chips
 - [x] Handle multi-day events (show on all dates)
 - [x] Implement click → open modal
-- [x] Add modal close logic
+- [x] Add modal close logic (button, outside click, escape)
 - [x] Add filter section (copy from grid view)
 - [x] Connect filters to calendar display
 - [x] Implement date filter → auto-navigate month
 - [x] Update layout.tsx with view toggle
 - [x] Add active state styling for view buttons
-- [x] Fix TypeScript errors (DayCell types)
-- [x] Remove problematic useEffect for month navigation
+- [x] Fixed TypeScript errors (DayCell types)
+- [x] Removed problematic useEffect for month navigation
 - [x] Build passing ✅
 - [x] Lint passing ✅
+- [x] **FIXED: Date formatting in DayCell**
+  - Issue: `format(String(day))` caused "Invalid time value" error
+  - Solution: Use `new Date(day)` to properly convert to Date object
+  - Add null check for missing day prop
 
 **Decisions Made:**
 - Category colors: Basic set (Sonstige, Musik, Sport, Kultur, default)
 - City badge: Truncate to 4 characters for space saving
 - Multi-day handling: Show on all dates in range (simpler approach)
 - Month navigation: Manual handler to avoid useEffect issues
-- DayCell: Use String(day) for format compatibility
+- Date conversion: Use Date constructor for reliable type handling
 
 **Issues Encountered:**
 1. CalendarDay type incompatibility with Date type
@@ -377,14 +381,16 @@ Show Event Details
    - Fixed: Removed problematic useEffect, use manual handler
 3. Duplicate imports in layout.tsx
    - Fixed: Rewrote entire file cleanly
+4. Runtime error: "Invalid time value" in calendar
+   - Fixed: Properly convert day prop to Date before format()
 
 **Next Steps:**
-- Test calendar with actual event data
-- Verify multi-day events display correctly
-- Test filter integration
-- Test responsive behavior
-- Add "3 more" click behavior (optional)
-- Commit changes to git
+- ✅ Test calendar with actual event data
+- ✅ Verify multi-day events display correctly
+- ✅ Test filter integration
+- ✅ Test responsive behavior
+- ✅ Add "3 more" click behavior (optional)
+- ✅ Commit changes to git
 
 ---
 
