@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { X, Filter } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format, isValid } from 'date-fns';
-import { type DayProps, type CalendarDay } from 'react-day-picker';
 import { CalendarEventChip } from '@/components/calendar/calendar-event-chip';
 import { EventDetailsModal } from '@/components/calendar/event-details-modal';
 
@@ -110,11 +109,6 @@ export default function CalendarPage() {
       : categoryColors['default'];
   };
 
-  const formatDateKey = (day: CalendarDay): string => {
-    const dateObj = (typeof day === 'string' || typeof day === 'number') ? new Date(day as any) : day as unknown as Date;
-    return format(dateObj, 'yyyy-MM-dd');
-  };
-
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, Event[]> = {};
     
@@ -196,15 +190,14 @@ export default function CalendarPage() {
   };
 
   // Custom day cell component
-  const DayCell = ({ day, ...props }: DayProps) => {
-    const dateKey = formatDateKey(day);
-    const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
+  const DayCell = (props: any) => {
+    const dateObj = props.day ? new Date(props.day as any) : null;
+    const dateKey = dateObj ? format(dateObj, 'yyyy-MM-dd') : '';
+    const dayEvents = (dateKey && eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
     
     return (
       <div {...props} className="relative h-32 w-full p-1">
-        <div className="text-sm font-medium mb-1">{format(formatDateKey(day), 'd')}</div>
-        
-        {/* Stacked event chips */}
+        <div className="text-sm font-medium mb-1">{props.day}</div>
         <div className="flex flex-col gap-1 overflow-hidden">
           {dayEvents.slice(0, 3).map(event => (
             <CalendarEventChip
