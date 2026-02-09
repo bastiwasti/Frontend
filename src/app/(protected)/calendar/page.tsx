@@ -191,8 +191,19 @@ export default function CalendarPage() {
 
   // Custom day cell component
   const DayCell = (props: any) => {
-    const dateObj = props.day ? new Date(props.day as any) : null;
-    const dateKey = dateObj ? format(dateObj, 'yyyy-MM-dd') : '';
+    let dateKey = '';
+    if (props.day) {
+      try {
+        // Try to create a valid Date object
+        const dateObj = props.day instanceof Date ? props.day : new Date(props.day);
+        if (!isNaN(dateObj.getTime())) {
+          dateKey = format(dateObj, 'yyyy-MM-dd');
+        }
+      } catch (error) {
+        console.error('Error formatting day:', props.day, error);
+      }
+    }
+    
     const dayEvents = (dateKey && eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
     
     return (
