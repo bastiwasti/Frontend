@@ -64,8 +64,8 @@ export default function StatusPage() {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.duration ? `${run.duration.toFixed(2)}s` : 'N/A'}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.events_found ?? 0}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.valid_events ?? 0}</td>
-                    <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.start_datetime ? new Date(run.start_datetime).toLocaleString() : 'N/A'}</td>
-                    <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.end_datetime ? new Date(run.end_datetime).toLocaleString() : 'N/A'}</td>
+                  <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.start_time ? new Date(run.start_time).toLocaleString() : 'N/A'}</td>
+                  <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.end_time ? new Date(run.end_time).toLocaleString() : 'N/A'}</td>
                     <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.raw_summary_id ?? 'N/A'}</td>
                   </tr>
                 ))}

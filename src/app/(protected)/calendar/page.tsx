@@ -352,17 +352,89 @@ export default function CalendarPage() {
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
-            <Calendar
-              mode="single"
-              selected={undefined}
-              month={currentMonth}
-              onMonthChange={handleMonthChange}
-              components={{
-                Day: DayCell,
-              }}
-              className="w-full p-6"
-              numberOfMonths={1}
-            />
+            <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Calendar</h2>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                      className="px-3 py-1 border rounded hover:bg-gray-100"
+                    >
+                      ←
+                    </button>
+                    <span className="text-sm font-medium">
+                      {format(currentMonth, 'MMMM yyyy')}
+                    </span>
+                    <button
+                      onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+                      className="px-3 py-1 border rounded hover:bg-gray-100"
+                    >
+                      →
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-7 gap-2 mb-2 text-xs font-medium text-gray-500">
+                  <div>Sun</div>
+                  <div>Mon</div>
+                  <div>Tue</div>
+                  <div>Wed</div>
+                  <div>Thu</div>
+                  <div>Fri</div>
+                  <div>Sat</div>
+                </div>
+                
+                {Array.from({ length: 35 }, (_, i) => {
+                  const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+                  const startingDayOfWeek = firstDayOfMonth.getDay();
+                  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+                  
+                  const days = [];
+                  
+                  for (let i = 0; i < startingDayOfWeek; i++) {
+                    days.push(null);
+                  }
+                  
+                  for (let i = 1; i <= daysInMonth; i++) {
+                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
+                    const dateKey = format(date, 'yyyy-MM-dd');
+                    const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
+                    
+                    days.push(
+                      <div key={i} className="relative h-32 w-full p-1 border border-gray-100">
+                        <div className="text-sm font-medium mb-1">{i}</div>
+                        <div className="flex flex-col gap-1 overflow-hidden">
+                          {dayEvents.slice(0, 3).map(event => (
+                            <CalendarEventChip
+                              key={event.id}
+                              event={event}
+                              onClick={() => setSelectedEvent(event)}
+                              colorClass={getCategoryColor(event.category)}
+                              showCity={true}
+                            />
+                          ))}
+                          {dayEvents.length > 3 && (
+                            <div className="text-xs text-muted-foreground">
+                              +{dayEvents.length - 3} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  
+                  const totalSlots = startingDayOfWeek + daysInMonth;
+                  const remainingSlots = 42 - totalSlots;
+                  
+                  for (let i = 0; i < remainingSlots; i++) {
+                    days.push(null);
+                  }
+                  
+                  return days;
+                }).flat()}
+              </div>
+            </div>
           </div>
         )}
 
