@@ -361,12 +361,24 @@ Show Event Details
 - [x] **FIXED: React key duplication issue**
   - Changed from key={i} to key={\${dateString}-\${index}}
   - Prevents React children with same key error
+- [x] **FIXED: Date formatting in DayCell**
+  - Issue: `format(String(day))` caused "Invalid time value" error
+  - Solution: Use `new Date(day)` to properly convert to Date object
+  - Add null check for missing day prop
 - [x] **REPLACED: react-day-picker with custom calendar grid**
   - Removed react-day-picker Calendar component entirely
   - Built custom 7x5 grid with manual month navigation
   - Handles multi-day events correctly
 - [x] Build passing ✅
 - [x] Lint passing ✅
+- [x] **IMPLEMENTED: Responsive calendar with scrollable cells**
+  - Added screen size detection hook
+  - Implemented week-based responsive rendering
+  - Mobile/Tablet: 3 weeks (21 days)
+  - Desktop: 5 weeks (35 days)
+  - Made day cells scrollable (overflow-y-auto)
+  - Event chips remain stacked
+  - Full month navigation with prev/next/today buttons
 
 **Decisions Made:**
 - Category colors: Basic set (Sonstige, Musik, Sport, Kultur, default)
@@ -374,33 +386,38 @@ Show Event Details
 - Multi-day handling: Show on all dates in range (simpler approach)
 - Month navigation: Manual handler to avoid useEffect issues
 - Date conversion: Use Date constructor for reliable type handling
+- **Responsive design:**
+  - Mobile/Tablet: 3 weeks visible (21 days total)
+  - Desktop: 5 weeks visible (35 days total)
+  - Screen-size based week rendering
+  - User can navigate months to see full calendar on larger screens
 - **Custom calendar implementation:**
   - Built from scratch to avoid react-day-picker compatibility issues
-  - Manual grid layout (7 days x 5 rows)
+  - Manual grid layout (7 columns × variable rows)
   - Custom DayCell component with proper event chip rendering
-  - Unique keys using date string + month index
+  - Unique keys using date string + index format
 
 **Issues Encountered:**
-1. CalendarDay type incompatibility with Date type
-   - Fixed: Used Date constructor for proper conversion
+1. react-day-picker Calendar component "Objects are not valid as a React child"
+   - Fixed: Replaced with custom grid implementation
 2. setState in useEffect causing cascading renders
    - Fixed: Removed problematic useEffect, use manual handler
 3. Duplicate imports in layout.tsx
    - Fixed: Rewrote entire file cleanly
-4. Runtime error: "Invalid time value" from date formatting
-   - Fixed: Added try-catch and validation with isNaN check
-5. React key duplication: "Encountered two children with same key"
+4. Runtime error: Type coercion causing "Invalid time value"
+   - Fixed: Use proper Date object creation
+5. Runtime error: React key duplication "Encountered two children with same key"
    - Fixed: Use unique key combining date and index
-6. react-day-picker Calendar component "Objects are not valid as a React child"
-   - Fixed: Replaced with custom calendar grid implementation
+6. File truncation during edits causing parse errors
+   - Fixed: Wrote complete file fresh to ensure clean state
 
 **Next Steps:**
 - ✅ Test calendar with actual event data
 - ✅ Verify multi-day events display correctly
 - ✅ Test filter integration
-- ✅ Test responsive behavior
-- Add "3 more" click behavior (optional)
-- Commit changes to git
+- ✅ Test responsive behavior (mobile/tablet/desktop)
+- ✅ Commit changes to git
+- Update documentation
 
 ---
 
