@@ -110,6 +110,11 @@ export default function CalendarPage() {
       : categoryColors['default'];
   };
 
+  const formatDateKey = (day: CalendarDay): string => {
+    const dateObj = (typeof day === 'string' || typeof day === 'number') ? new Date(day as any) : day as unknown as Date;
+    return format(dateObj, 'yyyy-MM-dd');
+  };
+
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, Event[]> = {};
     
@@ -192,12 +197,12 @@ export default function CalendarPage() {
 
   // Custom day cell component
   const DayCell = ({ day, ...props }: DayProps) => {
-    const dateKey = format(String(day), 'yyyy-MM-dd');
+    const dateKey = formatDateKey(day);
     const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
     
     return (
       <div {...props} className="relative h-32 w-full p-1">
-        <div className="text-sm font-medium mb-1">{format(String(day), 'd')}</div>
+        <div className="text-sm font-medium mb-1">{format(formatDateKey(day), 'd')}</div>
         
         {/* Stacked event chips */}
         <div className="flex flex-col gap-1 overflow-hidden">
