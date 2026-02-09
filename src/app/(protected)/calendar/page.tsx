@@ -396,14 +396,14 @@ export default function CalendarPage() {
                     days.push(null);
                   }
                   
-                  for (let i = 1; i <= daysInMonth; i++) {
-                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
+                  for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
                     const dateKey = format(date, 'yyyy-MM-dd');
                     const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
                     
                     days.push(
-                      <div key={i} className="relative h-32 w-full p-1 border border-gray-100">
-                        <div className="text-sm font-medium mb-1">{i}</div>
+                      <div key={`${format(date, 'yyyy-MM-dd')}-${i}`} className="relative h-32 w-full p-1 border border-gray-100">
+                        <div className="text-sm font-medium mb-1">{day}</div>
                         <div className="flex flex-col gap-1 overflow-hidden">
                           {dayEvents.slice(0, 3).map(event => (
                             <CalendarEventChip
