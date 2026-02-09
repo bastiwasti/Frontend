@@ -3,11 +3,54 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Filter } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
+import { X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, isValid } from 'date-fns';
 import { CalendarEventChip } from '@/components/calendar/calendar-event-chip';
 import { EventDetailsModal } from '@/components/calendar/event-details-modal';
+
+interface Event {
+  id: number;
+  run_id: number | null;
+  name: string;
+  description: string | null;
+  location: string | null;
+  city: string | null;
+  start_datetime: string | null;
+  end_datetime: string | null;
+  category: string | null;
+  source: string | null;
+  created_at: string;
+}
+
+interface Run {
+  id: number;
+  agent: string;
+}
+
+type DateRange = {
+  from: Date | undefined;
+  to?: Date | undefined;
+};
+
+interface FilterState {
+  run_id: number | null;
+  location: string;
+  city: string;
+  category: string;
+  source: string;
+  dateRange: DateRange;
+}
+
+interface CalendarDay {
+  date: Date;
+  dateKey: string;
+  events: Event[];
+}
+
+interface CalendarWeek {
+  days: CalendarDay[];
+  weekNumber: number;
+}
 
 interface Event {
   id: number;
@@ -48,15 +91,16 @@ export default function CalendarPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [screenWidth, setScreenWidth] = useState<number>(1024);
 
-  const [filters, setFilters] = useState<FilterState>({
-    run_id: null,
-    location: '',
-    city: '',
-    category: '',
-    source: '',
-    dateRange: { from: undefined },
-  });
+  useEffect(() => {
+    const handleResize = () => {
+      setScreenWidth(window.innerWidth);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -109,6 +153,12 @@ export default function CalendarPage() {
       : categoryColors['default'];
   };
 
+  const getWeeksToShow = (width: number) => {
+    if (width >= 1024) return 5; // Desktop
+    if (width >= 768) return 4;  // Tablet
+    return 3; // Mobile
+  };
+
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, Event[]> = {};
     
@@ -117,7 +167,6 @@ export default function CalendarPage() {
       
       const startDate = new Date(event.start_datetime);
       
-      // Handle multi-day events: add to ALL dates in range
       if (event.end_datetime) {
         const endDate = new Date(event.end_datetime);
         const currentDate = new Date(startDate);
@@ -129,7 +178,6 @@ export default function CalendarPage() {
           currentDate.setDate(currentDate.getDate() + 1);
         }
       } else {
-        // Single day event
         const dateKey = format(startDate, 'yyyy-MM-dd');
         if (!grouped[dateKey]) grouped[dateKey] = [];
         grouped[dateKey].push(event);
@@ -174,6 +222,49 @@ export default function CalendarPage() {
       source: '',
       dateRange: { from: undefined },
     });
+  };
+
+  const hasActiveFilters = Object.values(filters).some(v => {
+    if (typeof v === 'object' && v !== null && 'from' in v) {
+      return (v as { from: Date | undefined; to: Date | undefined }).from !== undefined || 
+             (v as { from: Date | undefined; to: Date | undefined }).to !== undefined;
+    }
+    return v !== '' && v !== null && (typeof v !== 'number' || v !== 0);
+  });
+
+  const renderCalendar = () => {
+    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const startingDayOfWeek = firstDayOfMonth.getDay();
+    const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+    
+    const weeksToShow = getWeeksToShow(screenWidth);
+    const weeks: CalendarWeek[] = [];
+    
+    for (let weekNum = 0; weekNum < weeksToShow; weekNum++) {
+      const days: CalendarDay[] = [];
+      
+      const startDayOfWeek = weekNum === 0 ? startingDayOfWeek : 0;
+      
+      for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+        const dayNum = weekNum * 7 + dayOfWeek + 1 - startDayOfWeek;
+        
+        if (dayNum > daysInMonth) {
+          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum);
+          const dateKey = format(date, 'yyyy-MM-dd');
+          const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
+          
+          days.push({
+            date,
+            dateKey,
+            events: dayEvents
+          });
+        }
+      }
+      
+      weeks.push({ days, weekNumber: weekNum + 1 });
+    }
+    
+    return weeks;
   };
 
   const hasActiveFilters = Object.values(filters).some(v => {
@@ -352,49 +443,80 @@ export default function CalendarPage() {
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
-            <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold">Calendar</h2>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-                      className="px-3 py-1 border rounded hover:bg-gray-100"
-                    >
-                      ←
-                    </button>
-                    <span className="text-sm font-medium">
-                      {format(currentMonth, 'MMMM yyyy')}
-                    </span>
-                    <button
-                      onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
-                      className="px-3 py-1 border rounded hover:bg-gray-100"
-                    >
-                      →
-                    </button>
-                  </div>
+            {/* Month Navigation */}
+            <div className="flex items-center justify-between p-4 mb-4">
+              <button
+                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                className="px-3 py-2 border rounded hover:bg-gray-100"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1, 1))}
+                  className="px-3 py-2 border rounded hover:bg-gray-100"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="text-center">
+                <button
+                  onClick={() => setCurrentMonth(new Date())}
+                  className="px-3 py-2 border rounded hover:bg-gray-100 text-sm"
+                >
+                  Today
+                </button>
+              </div>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="p-4">
+              <div className="grid grid-cols-7 gap-2 mb-2 text-xs font-medium text-gray-500">
+                <div className="text-center w-8">Sun</div>
+                <div className="text-center w-8">Mon</div>
+                <div className="text-center w-8">Tue</div>
+                <div className="text-center w-8">Wed</div>
+                <div className="text-center w-8">Thu</div>
+                <div className="text-center w-8">Fri</div>
+                <div className="text-center w-8">Sat</div>
+              </div>
+              {renderCalendar().map(week => (
+                <div key={week.weekNumber} className="contents">
+                  {week.days.map(day => {
+                    if (day) {
+                      const dateKey = format(day.date, 'yyyy-MM-dd');
+                      const dateNum = day.date.getDate();
+                      
+                      return (
+                        <div key={dateKey} className="relative h-32 w-full p-1 border border-gray-100 hover:bg-gray-50">
+                          <div className="text-sm font-medium mb-1">{dateNum}</div>
+                          <div className="flex flex-col gap-1 overflow-y-auto max-h-24 pr-1">
+                            {day.events.map(event => (
+                              <CalendarEventChip
+                                key={event.id}
+                                event={event}
+                                onClick={() => setSelectedEvent(event)}
+                                colorClass={getCategoryColor(event.category)}
+                                showCity={true}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                  })}
                 </div>
-                
-                <div className="grid grid-cols-7 gap-2 mb-2 text-xs font-medium text-gray-500">
-                  <div>Sun</div>
-                  <div>Mon</div>
-                  <div>Tue</div>
-                  <div>Wed</div>
-                  <div>Thu</div>
-                  <div>Fri</div>
-                  <div>Sat</div>
-                </div>
-                
-                {Array.from({ length: 35 }, (_, i) => {
-                  const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-                  const startingDayOfWeek = firstDayOfMonth.getDay();
-                  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-                  
-                  const days = [];
-                  
-                  for (let i = 0; i < startingDayOfWeek; i++) {
-                    days.push(null);
-                  }
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Event Details Modal */}
+        <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+      </div>
+    </div>
+  );
+}
                   
                   for (let day = 1; day <= daysInMonth; day++) {
                     const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
