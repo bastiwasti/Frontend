@@ -52,39 +52,6 @@ interface CalendarWeek {
   weekNumber: number;
 }
 
-interface Event {
-  id: number;
-  run_id: number | null;
-  name: string;
-  description: string | null;
-  location: string | null;
-  city: string | null;
-  start_datetime: string | null;
-  end_datetime: string | null;
-  category: string | null;
-  source: string | null;
-  created_at: string;
-}
-
-interface Run {
-  id: number;
-  agent: string;
-}
-
-type DateRange = {
-  from: Date | undefined;
-  to?: Date | undefined;
-};
-
-interface FilterState {
-  run_id: number | null;
-  location: string;
-  city: string;
-  category: string;
-  source: string;
-  dateRange: DateRange;
-}
-
 export default function CalendarPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
@@ -123,22 +90,6 @@ export default function CalendarPage() {
     fetchData();
   }, []);
 
-  const uniqueLocations = useMemo(() => {
-    return Array.from(new Set(events.map(e => e.location).filter((l): l is string => Boolean(l)))).sort();
-  }, [events]);
-
-  const uniqueCities = useMemo(() => {
-    return Array.from(new Set(events.map(e => e.city).filter((c): c is string => Boolean(c)))).sort();
-  }, [events]);
-
-  const uniqueCategories = useMemo(() => {
-    return Array.from(new Set(events.map(e => e.category).filter((c): c is string => Boolean(c)))).sort();
-  }, [events]);
-
-  const uniqueSources = useMemo(() => {
-    return Array.from(new Set(events.map(e => e.source).filter((s): s is string => Boolean(s)))).sort();
-  }, [events]);
-
   const categoryColors: Record<string, string> = {
     'Sonstige': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
     'Musik': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
@@ -154,9 +105,9 @@ export default function CalendarPage() {
   };
 
   const getWeeksToShow = (width: number) => {
-    if (width >= 1024) return 5; // Desktop
-    if (width >= 768) return 4;  // Tablet
-    return 3; // Mobile
+    if (width >= 1024) return 5;
+    if (width >= 768) return 4;
+    return 3;
   };
 
   const eventsByDate = useMemo(() => {
@@ -185,6 +136,22 @@ export default function CalendarPage() {
     });
     
     return grouped;
+  }, [events]);
+
+  const uniqueLocations = useMemo(() => {
+    return Array.from(new Set(events.map(e => e.location).filter((l): l is string => Boolean(l)))).sort();
+  }, [events]);
+
+  const uniqueCities = useMemo(() => {
+    return Array.from(new Set(events.map(e => e.city).filter((c): c is string => Boolean(c)))).sort();
+  }, [events]);
+
+  const uniqueCategories = useMemo(() => {
+    return Array.from(new Set(events.map(e => e.category).filter((c): c is string => Boolean(c)))).sort();
+  }, [events]);
+
+  const uniqueSources = useMemo(() => {
+    return Array.from(new Set(events.map(e => e.source).filter((s): s is string => Boolean(s)))).sort();
   }, [events]);
 
   const filteredEvents = useMemo(() => {
@@ -267,61 +234,6 @@ export default function CalendarPage() {
     return weeks;
   };
 
-  const hasActiveFilters = Object.values(filters).some(v => {
-    if (typeof v === 'object' && v !== null && 'from' in v) {
-      return (v as { from: Date | undefined; to: Date | undefined }).from !== undefined || 
-             (v as { from: Date | undefined; to: Date | undefined }).to !== undefined;
-    }
-    return v !== '' && v !== null && (typeof v !== 'number' || v !== 0);
-  });
-
-  // Handle date filter auto-navigation
-  const handleMonthChange = (month: Date) => {
-    setCurrentMonth(month);
-  };
-
-  // Custom day cell component
-  const DayCell = (props: any) => {
-    let dateKey = '';
-    if (props.day) {
-      try {
-        // Try to create a valid Date object
-        const dateObj = props.day instanceof Date ? props.day : new Date(props.day);
-        if (!isNaN(dateObj.getTime())) {
-          dateKey = format(dateObj, 'yyyy-MM-dd');
-        }
-      } catch (error) {
-        console.error('Error formatting day:', props.day, error);
-      }
-    }
-    
-    const dayEvents = (dateKey && eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
-    
-    return (
-      <div {...props} className="relative h-32 w-full p-1">
-        <div className="text-sm font-medium mb-1">{props.day}</div>
-        <div className="flex flex-col gap-1 overflow-hidden">
-          {dayEvents.slice(0, 3).map(event => (
-            <CalendarEventChip
-              key={event.id}
-              event={event}
-              onClick={() => setSelectedEvent(event)}
-              colorClass={getCategoryColor(event.category)}
-              showCity={true}
-            />
-          ))}
-          
-          {/* More events indicator */}
-          {dayEvents.length > 3 && (
-            <div className="text-xs text-muted-foreground">
-              +{dayEvents.length - 3} more
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -336,7 +248,6 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Filters Section */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border p-4 mb-8 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold">Filters</h2>
@@ -429,7 +340,6 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Calendar */}
         {isLoading ? (
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status"></div>
@@ -443,7 +353,6 @@ export default function CalendarPage() {
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
-            {/* Month Navigation */}
             <div className="flex items-center justify-between p-4 mb-4">
               <button
                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
@@ -469,7 +378,6 @@ export default function CalendarPage() {
               </div>
             </div>
 
-            {/* Calendar Grid */}
             <div className="p-4">
               <div className="grid grid-cols-7 gap-2 mb-2 text-xs font-medium text-gray-500">
                 <div className="text-center w-8">Sun</div>
@@ -511,56 +419,6 @@ export default function CalendarPage() {
           </div>
         )}
 
-        {/* Event Details Modal */}
-        <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
-      </div>
-    </div>
-  );
-}
-                  
-                  for (let day = 1; day <= daysInMonth; day++) {
-                    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                    const dateKey = format(date, 'yyyy-MM-dd');
-                    const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
-                    
-                    days.push(
-                      <div key={`${format(date, 'yyyy-MM-dd')}-${i}`} className="relative h-32 w-full p-1 border border-gray-100">
-                        <div className="text-sm font-medium mb-1">{day}</div>
-                        <div className="flex flex-col gap-1 overflow-hidden">
-                          {dayEvents.slice(0, 3).map(event => (
-                            <CalendarEventChip
-                              key={event.id}
-                              event={event}
-                              onClick={() => setSelectedEvent(event)}
-                              colorClass={getCategoryColor(event.category)}
-                              showCity={true}
-                            />
-                          ))}
-                          {dayEvents.length > 3 && (
-                            <div className="text-xs text-muted-foreground">
-                              +{dayEvents.length - 3} more
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }
-                  
-                  const totalSlots = startingDayOfWeek + daysInMonth;
-                  const remainingSlots = 42 - totalSlots;
-                  
-                  for (let i = 0; i < remainingSlots; i++) {
-                    days.push(null);
-                  }
-                  
-                  return days;
-                }).flat()}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Event Details Modal */}
         <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
       </div>
     </div>
