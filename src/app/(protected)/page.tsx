@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -36,7 +36,7 @@ interface FilterState {
 }
 
 interface CalendarDay {
-  date: Date;
+  date: Date | null;
   dateKey: string;
   events: Event[];
 }
@@ -50,7 +50,7 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFiltering, setIsFiltering] = useState(false);
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [referenceDate, setReferenceDate] = useState<Date>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     location: '',
@@ -86,6 +86,10 @@ export default function Home() {
     }, 300);
     return () => clearTimeout(timer);
   }, [debouncedFilters]);
+
+  const handleDayClick = useCallback((date: Date) => {
+    setReferenceDate(date);
+  }, []);
 
   const eventsByDate = useMemo(() => {
     if (!events.length) return {};
@@ -169,6 +173,13 @@ export default function Home() {
     return Array.from(new Set(events.map(e => e.source).filter((s): s is string => Boolean(s)))).sort();
   }, [events]);
 
+  const windowDateRange = useMemo(() => {
+    const start = new Date(referenceDate);
+    const end = new Date(referenceDate);
+    end.setDate(end.getDate() + 14);
+    return { from: start, to: end };
+  }, [referenceDate]);
+
   const filteredEvents = useMemo(() => {
     if (!events.length) return [];
 
@@ -179,13 +190,16 @@ export default function Home() {
         if (debouncedFilters.category && event.category !== debouncedFilters.category) return false;
         if (debouncedFilters.source && event.source !== debouncedFilters.source) return false;
         
+        const eventDate = event.start_datetime ? new Date(event.start_datetime) : null;
+        
         if (debouncedFilters.dateRange.from || debouncedFilters.dateRange.to) {
-          const startDate = event.start_datetime ? new Date(event.start_datetime) : null;
-          if (!startDate || !isValid(startDate)) return false;
+          if (!eventDate || !isValid(eventDate)) return false;
           
-          if (debouncedFilters.dateRange.from && startDate < debouncedFilters.dateRange.from) return false;
-          if (debouncedFilters.dateRange.to && startDate > debouncedFilters.dateRange.to) return false;
+          if (debouncedFilters.dateRange.from && eventDate < debouncedFilters.dateRange.from) return false;
+          if (debouncedFilters.dateRange.to && eventDate > debouncedFilters.dateRange.to) return false;
         }
+        
+        if (windowDateRange.from && eventDate && (eventDate < windowDateRange.from || eventDate > windowDateRange.to)) return false;
         
         return true;
       })
@@ -194,7 +208,7 @@ export default function Home() {
         const dateB = b.start_datetime ? new Date(b.start_datetime).getTime() : 0;
         return dateA - dateB;
       });
-  }, [events, debouncedFilters]);
+  }, [events, debouncedFilters, windowDateRange]);
 
   const clearAllFilters = useCallback(() => {
     setFilters({
@@ -204,6 +218,10 @@ export default function Home() {
       source: '',
       dateRange: { from: undefined },
     });
+  }, []);
+
+  const resetToToday = useCallback(() => {
+    setReferenceDate(new Date());
   }, []);
 
   const hasActiveFilters = useMemo(() => {
@@ -217,32 +235,43 @@ export default function Home() {
   }, [debouncedFilters]);
 
   const renderCalendar = useCallback(() => {
-    const year = currentMonth.getFullYear();
-    const month = currentMonth.getMonth();
-    const firstDayOfMonth = new Date(year, month, 1);
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    let startDay = firstDayOfMonth.getDay();
-    if (startDay === 0) startDay = 7;
+    const start = new Date(referenceDate);
+    const end = new Date(referenceDate);
+    end.setDate(end.getDate() + 14);
     
     const weeks: CalendarWeek[] = [];
-    const paddingFromPrevMonth = startDay - 1;
-    const totalDays = paddingFromPrevMonth + daysInMonth;
-    const totalWeeks = Math.ceil(totalDays / 7);
-    
     const filteredEventsSet = new Set(filteredEvents);
     
-    for (let weekNum = 0; weekNum < totalWeeks; weekNum++) {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    const startDay = startDate.getDay();
+    
+    for (let weekNum = 0; weekNum < 3; weekNum++) {
       const days: CalendarDay[] = [];
       
       for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-        const dayNum = weekNum * 7 + dayOfWeek + 1 - paddingFromPrevMonth;
-        const date = new Date(year, month, dayNum);
-        const dateKey = format(date, 'yyyy-MM-dd');
+        const currentDate = new Date(startDate);
+        currentDate.setDate(startDate.getDate() + (weekNum * 7 + dayOfWeek));
+        
+        if (currentDate > endDate) {
+          days.push({
+            date: null,
+            dateKey: '',
+            events: []
+          });
+          continue;
+        }
+        
+        const dateKey = format(currentDate, 'yyyy-MM-dd');
         const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
         
+        const dayNum = currentDate.getDate();
+        const isToday = isSameDay(currentDate, new Date());
+        const isReferenceDay = isSameDay(currentDate, referenceDate);
+        
         days.push({
-          date,
+          date: currentDate,
           dateKey,
           events: dayEvents
         });
@@ -252,7 +281,7 @@ export default function Home() {
     }
     
     return weeks;
-  }, [currentMonth, eventsByDate, filteredEvents]);
+  }, [referenceDate, eventsByDate, filteredEvents]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
@@ -394,23 +423,23 @@ export default function Home() {
             <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
             <div className="flex items-center justify-between p-4 mb-4">
               <button
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
+                onClick={() => setReferenceDate(new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate() - 7))}
                 className="px-3 py-2 border rounded hover:bg-gray-100"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <div className="text-center font-semibold text-lg">
-                {format(currentMonth, 'MMMM yyyy')}
+                {format(referenceDate, 'MMM d')}
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))}
+                  onClick={() => setReferenceDate(new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate() + 7))}
                   className="px-3 py-2 border rounded hover:bg-gray-100"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => setCurrentMonth(new Date())}
+                  onClick={resetToToday}
                   className="px-3 py-2 border rounded hover:bg-gray-100 text-sm"
                 >
                   Today
@@ -430,25 +459,35 @@ export default function Home() {
               </div>
               {renderCalendar().map(week => (
                 <div key={week.weekNumber} className="grid grid-cols-7 gap-2 mb-2">
-                  {week.days.map(day => {
+                  {week.days.map((day, index) => {
+                    if (!day.date) {
+                      return (
+                        <div key={`empty-${week.weekNumber}-${index}`} className="h-32 w-full p-1 border border-transparent"></div>
+                      );
+                    }
+                    
                     const dateKey = format(day.date, 'yyyy-MM-dd');
+                    
                     const dateNum = day.date.getDate();
-                    const isCurrentMonth = day.date.getMonth() === currentMonth.getMonth();
+                    const isReferenceDay = isSameDay(day.date, referenceDate);
                     const isToday = isSameDay(day.date, new Date());
                     
                     return (
-                      <div key={dateKey} className={`relative h-32 w-full p-1 border border-gray-100 hover:bg-gray-50 ${isToday ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500 dark:ring-blue-400' : ''}`}>
-                        <div className={`text-sm font-medium mb-1 ${!isCurrentMonth ? 'text-gray-400' : ''} ${isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}`}>{dateNum}</div>
+                      <div key={dateKey} className={`relative h-32 w-full p-1 border border-gray-100 hover:bg-gray-50 cursor-pointer ${isReferenceDay ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500 dark:ring-blue-400' : ''} ${isToday && !isReferenceDay ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500 dark:ring-blue-400' : ''}`} onClick={() => day.date && handleDayClick(day.date)}>
+                        <div className={`text-sm font-medium mb-1 ${isReferenceDay ? 'text-blue-600 dark:text-blue-400 font-bold' : ''} ${isToday && !isReferenceDay ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}`}>{day.date ? day.date.getDate() : ''}</div>
                         <div className="flex flex-col gap-1 overflow-y-auto max-h-24 pr-1">
-                            {day.events.map(event => (
-                              <CalendarEventChip
-                                key={event.id}
-                                event={event}
-                                onClick={() => setSelectedEvent(event)}
-                                colorClass={getCityColor(event.city)}
-                                showCity={false}
-                              />
-                            ))}
+                          {day.events.slice(0, 3).map((event: Event) => (
+                            <CalendarEventChip
+                              key={event.id}
+                              event={event}
+                              onClick={() => setSelectedEvent(event)}
+                              colorClass={getCityColor(event.city)}
+                              showCity={false}
+                            />
+                          ))}
+                          {day.events.length > 3 && (
+                            <div className="text-xs text-gray-500 text-center">+{day.events.length - 3} more</div>
+                          )}
                         </div>
                       </div>
                     );
