@@ -267,8 +267,19 @@ export default function Home() {
       const monthNum = currentDate.getMonth();
       const yearNum = currentDate.getFullYear();
       
-      const isToday = isSameDay(currentDate, new Date());
-      const isReferenceDay = isToday && yearNum === referenceDate.getFullYear() && monthNum === referenceDate.getMonth() && dateNum === referenceDate.getDate();
+      const now = new Date();
+      const isToday = (
+        yearNum === now.getFullYear() &&
+        monthNum === now.getMonth() &&
+        dateNum === now.getDate()
+      );
+      
+      const isReferenceDay = (
+        isToday &&
+        yearNum === referenceDate.getFullYear() &&
+        monthNum === referenceDate.getMonth() &&
+        dateNum === referenceDate.getDate()
+      );
       
       days.push({
         date: currentDate,
