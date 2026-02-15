@@ -268,7 +268,7 @@ export default function Home() {
       const yearNum = currentDate.getFullYear();
       
       const isToday = isSameDay(currentDate, new Date());
-      const isReferenceDay = yearNum === referenceDate.getFullYear() && monthNum === referenceDate.getMonth() && dateNum === referenceDate.getDate();
+      const isReferenceDay = isToday && yearNum === referenceDate.getFullYear() && monthNum === referenceDate.getMonth() && dateNum === referenceDate.getDate();
       
       days.push({
         date: currentDate,
