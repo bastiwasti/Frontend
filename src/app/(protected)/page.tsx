@@ -247,38 +247,27 @@ export default function Home() {
     const weeks: CalendarWeek[] = [];
     const filteredEventsSet = new Set(filteredEvents);
     
-    const mondayOfStartWeek = new Date(start);
-    const dayOfWeek = mondayOfStartWeek.getDay();
+    const referenceDayOfWeek = referenceDate.getDay();
+    const daysBack = referenceDayOfWeek === 0 ? 6 : referenceDayOfWeek - 1;
     
-    const mondayOfReferenceWeek = new Date(referenceDate);
-    const referenceDayOfWeek = mondayOfReferenceWeek.getDay();
-    mondayOfReferenceWeek.setDate(referenceDate.getDate() - referenceDayOfWeek);
+    const mondayOfWindow = new Date(referenceDate);
+    mondayOfWindow.setDate(referenceDate.getDate() - daysBack);
     
     const days: CalendarDay[] = [];
     
     for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(mondayOfStartWeek);
-      currentDate.setDate(mondayOfStartWeek.getDate() + i);
+      const currentDate = new Date(mondayOfWindow);
+      currentDate.setDate(mondayOfWindow.getDate() + i);
       
       const dateKey = format(currentDate, 'yyyy-MM-dd');
       const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
       
       const dateNum = currentDate.getDate();
-      const monthNum = currentDate.getMonth();
-      const yearNum = currentDate.getFullYear();
-      
       const now = new Date();
       const isToday = (
-        yearNum === now.getFullYear() &&
-        monthNum === now.getMonth() &&
+        currentDate.getFullYear() === now.getFullYear() &&
+        currentDate.getMonth() === now.getMonth() &&
         dateNum === now.getDate()
-      );
-      
-      const isReferenceDay = (
-        isToday &&
-        yearNum === referenceDate.getFullYear() &&
-        monthNum === referenceDate.getMonth() &&
-        dateNum === referenceDate.getDate()
       );
       
       days.push({
