@@ -243,18 +243,19 @@ export default function Home() {
     const filteredEventsSet = new Set(filteredEvents);
     
     const startDate = new Date(start);
-    const endDate = new Date(end);
+    const dayOfWeek = startDate.getDay();
     
-    const startDay = startDate.getDay();
+    const mondayOfStartWeek = new Date(startDate);
+    mondayOfStartWeek.setDate(startDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? 0 : 6 - dayOfWeek + 1));
     
     for (let weekNum = 0; weekNum < 3; weekNum++) {
       const days: CalendarDay[] = [];
       
       for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(startDate.getDate() + (weekNum * 7 + dayOfWeek));
+        const currentDate = new Date(mondayOfStartWeek);
+        currentDate.setDate(mondayOfStartWeek.getDate() + (weekNum * 7 + dayOfWeek));
         
-        if (currentDate > endDate) {
+        if (currentDate > end) {
           days.push({
             date: null,
             dateKey: '',
@@ -266,7 +267,7 @@ export default function Home() {
         const dateKey = format(currentDate, 'yyyy-MM-dd');
         const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
         
-        const dayNum = currentDate.getDate();
+        const dateNum = currentDate.getDate();
         const isToday = isSameDay(currentDate, new Date());
         const isReferenceDay = isSameDay(currentDate, referenceDate);
         
