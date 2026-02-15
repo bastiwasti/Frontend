@@ -176,7 +176,7 @@ export default function Home() {
   const windowDateRange = useMemo(() => {
     const start = new Date(referenceDate);
     const end = new Date(referenceDate);
-    end.setDate(end.getDate() + 14);
+    end.setDate(end.getDate() + 6);
     return { from: start, to: end };
   }, [referenceDate]);
 
@@ -199,7 +199,12 @@ export default function Home() {
           if (debouncedFilters.dateRange.to && eventDate > debouncedFilters.dateRange.to) return false;
         }
         
-        if (windowDateRange.from && eventDate && (eventDate < windowDateRange.from || eventDate > windowDateRange.to)) return false;
+        if (windowDateRange.from || windowDateRange.to) {
+          if (!eventDate || !isValid(eventDate)) return false;
+          
+          if (windowDateRange.from && eventDate < windowDateRange.from) return false;
+          if (windowDateRange.to && eventDate > windowDateRange.to) return false;
+        }
         
         return true;
       })
@@ -237,49 +242,39 @@ export default function Home() {
   const renderCalendar = useCallback(() => {
     const start = new Date(referenceDate);
     const end = new Date(referenceDate);
-    end.setDate(end.getDate() + 14);
+    end.setDate(end.getDate() + 6);
     
     const weeks: CalendarWeek[] = [];
     const filteredEventsSet = new Set(filteredEvents);
     
-    const startDate = new Date(start);
-    const dayOfWeek = startDate.getDay();
+    const mondayOfStartWeek = new Date(start);
+    const dayOfWeek = mondayOfStartWeek.getDay();
     
-    const mondayOfStartWeek = new Date(startDate);
-    mondayOfStartWeek.setDate(startDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? 0 : 6 - dayOfWeek + 1));
+    const mondayOfReferenceWeek = new Date(referenceDate);
+    const referenceDayOfWeek = mondayOfReferenceWeek.getDay();
+    mondayOfReferenceWeek.setDate(referenceDate.getDate() - referenceDayOfWeek);
     
-    for (let weekNum = 0; weekNum < 3; weekNum++) {
-      const days: CalendarDay[] = [];
+    const days: CalendarDay[] = [];
+    
+    for (let i = 0; i < 7; i++) {
+      const currentDate = new Date(mondayOfStartWeek);
+      currentDate.setDate(mondayOfStartWeek.getDate() + i);
       
-      for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-        const currentDate = new Date(mondayOfStartWeek);
-        currentDate.setDate(mondayOfStartWeek.getDate() + (weekNum * 7 + dayOfWeek));
-        
-        if (currentDate > end) {
-          days.push({
-            date: null,
-            dateKey: '',
-            events: []
-          });
-          continue;
-        }
-        
-        const dateKey = format(currentDate, 'yyyy-MM-dd');
-        const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
-        
-        const dateNum = currentDate.getDate();
-        const isToday = isSameDay(currentDate, new Date());
-        const isReferenceDay = isSameDay(currentDate, referenceDate);
-        
-        days.push({
-          date: currentDate,
-          dateKey,
-          events: dayEvents
-        });
-      }
+      const dateKey = format(currentDate, 'yyyy-MM-dd');
+      const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
       
-      weeks.push({ days, weekNumber: weekNum + 1 });
+      const dateNum = currentDate.getDate();
+      const isToday = isSameDay(currentDate, new Date());
+      const isReferenceDay = isSameDay(currentDate, referenceDate);
+      
+      days.push({
+        date: currentDate,
+        dateKey,
+        events: dayEvents
+      });
     }
+    
+    weeks.push({ days, weekNumber: 1 });
     
     return weeks;
   }, [referenceDate, eventsByDate, filteredEvents]);
@@ -430,7 +425,7 @@ export default function Home() {
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <div className="text-center font-semibold text-lg">
-                {format(referenceDate, 'MMM d')}
+                {format(referenceDate, 'MMM yyyy')}
               </div>
               <div className="flex items-center gap-2">
                 <button
