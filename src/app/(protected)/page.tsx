@@ -264,8 +264,11 @@ export default function Home() {
       const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
       
       const dateNum = currentDate.getDate();
+      const monthNum = currentDate.getMonth();
+      const yearNum = currentDate.getFullYear();
+      
       const isToday = isSameDay(currentDate, new Date());
-      const isReferenceDay = isSameDay(currentDate, referenceDate);
+      const isReferenceDay = yearNum === referenceDate.getFullYear() && monthNum === referenceDate.getMonth() && dateNum === referenceDate.getDate();
       
       days.push({
         date: currentDate,
