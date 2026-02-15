@@ -7,6 +7,7 @@ import { X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, isValid, isSameDay } from 'date-fns';
 import { CalendarEventChip } from '@/components/calendar/calendar-event-chip';
 import { EventDetailsModal } from '@/components/calendar/event-details-modal';
+import { DayEventsModal } from '@/components/calendar/day-events-modal';
 import { useDebounce } from '@/hooks/use-debounce';
 
 interface Event {
@@ -52,6 +53,7 @@ export default function Home() {
   const [isFiltering, setIsFiltering] = useState(false);
   const [referenceDate, setReferenceDate] = useState<Date>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedDayEvents, setSelectedDayEvents] = useState<Event[] | null>(null);
   const [filters, setFilters] = useState<FilterState>({
     location: '',
     city: '',
@@ -498,6 +500,11 @@ export default function Home() {
           </>
         )}
 
+        <DayEventsModal 
+          date={selectedDayEvents?.length ? new Date(selectedDayEvents[0].start_datetime || '') : null}
+          events={selectedDayEvents || []}
+          onClose={() => setSelectedDayEvents(null)}
+        />
         <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
       </div>
     </div>
