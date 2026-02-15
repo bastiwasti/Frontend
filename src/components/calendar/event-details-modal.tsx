@@ -1,6 +1,7 @@
 'use client';
 
-import { ExternalLink, MapPin, Building2, Calendar, Clock, Tag } from 'lucide-react';
+import { useState, memo } from 'react';
+import { ExternalLink, MapPin, Building2, Calendar, Clock, Tag, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -26,18 +27,41 @@ interface EventDetailsModalProps {
   onClose: () => void;
 }
 
-export function EventDetailsModal({ event, onClose }: EventDetailsModalProps) {
+function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) {
   const { dateRange, timeRange } = formatEventDateTime(event?.start_datetime || null, event?.end_datetime || null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   if (!event) return null;
 
   return (
     <Dialog open={!!event} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-md">
+      <DialogContent className={isDescriptionExpanded ? 'max-w-lg' : 'max-w-md'}>
         <DialogHeader>
           <DialogTitle className="text-xl">{event.name}</DialogTitle>
           {event.description && (
-            <DialogDescription className="line-clamp-3">{event.description}</DialogDescription>
+            <div className="space-y-1">
+              <DialogDescription 
+                className={isDescriptionExpanded ? '' : 'line-clamp-3'}
+              >
+                {event.description}
+              </DialogDescription>
+              <button
+                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+              >
+                {isDescriptionExpanded ? (
+                  <>
+                    Show less
+                    <ChevronUp className="h-3 w-3" />
+                  </>
+                ) : (
+                  <>
+                    Show more
+                    <ChevronDown className="h-3 w-3" />
+                  </>
+                )}
+              </button>
+            </div>
           )}
         </DialogHeader>
 
@@ -145,3 +169,5 @@ function formatEventDateTime(startDatetime: string | null, endDatetime: string |
 
   return { dateRange, timeRange };
 }
+
+export const EventDetailsModal = memo(EventDetailsModalComponent);

@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, isValid } from 'date-fns';
-import { CalendarEventChip } from '@/components/calendar/calendar-event-chip';
-import { EventDetailsModal } from '@/components/calendar/event-details-modal';
+import { X, Filter, ExternalLink, CalendarIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format, isSameDay, isValid } from 'date-fns';
 
 interface Event {
   id: number;
@@ -41,33 +42,20 @@ interface FilterState {
   dateRange: DateRange;
 }
 
-interface CalendarDay {
-  date: Date;
-  dateKey: string;
-  events: Event[];
-}
-
-interface CalendarWeek {
-  days: CalendarDay[];
-  weekNumber: number;
-}
-
 export default function CalendarPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [screenWidth, setScreenWidth] = useState<number>(1024);
+  const [expandedEventIds, setExpandedEventIds] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    const handleResize = () => {
-      setScreenWidth(window.innerWidth);
-    };
-    
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const [filters, setFilters] = useState<FilterState>({
+    run_id: null,
+    location: '',
+    city: '',
+    category: '',
+    source: '',
+    dateRange: { from: undefined },
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -79,8 +67,8 @@ export default function CalendarPage() {
         
         const eventsRes = await fetch('/api/events');
         const eventsData = await eventsRes.json();
-        setEvents(eventsData);
         console.log('Fetched events:', eventsData);
+        setEvents(eventsData);
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -89,54 +77,6 @@ export default function CalendarPage() {
     }
     fetchData();
   }, []);
-
-  const categoryColors: Record<string, string> = {
-    'Sonstige': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
-    'Musik': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
-    'Sport': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
-    'Kultur': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100',
-    'default': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100',
-  };
-
-  const getCategoryColor = (category: string | null): string => {
-    return category && categoryColors[category]
-      ? categoryColors[category]
-      : categoryColors['default'];
-  };
-
-  const getWeeksToShow = (width: number) => {
-    if (width >= 1024) return 5;
-    if (width >= 768) return 4;
-    return 3;
-  };
-
-  const eventsByDate = useMemo(() => {
-    const grouped: Record<string, Event[]> = {};
-    
-    events.forEach(event => {
-      if (!event.start_datetime) return;
-      
-      const startDate = new Date(event.start_datetime);
-      
-      if (event.end_datetime) {
-        const endDate = new Date(event.end_datetime);
-        const currentDate = new Date(startDate);
-        
-        while (currentDate <= endDate) {
-          const dateKey = format(currentDate, 'yyyy-MM-dd');
-          if (!grouped[dateKey]) grouped[dateKey] = [];
-          grouped[dateKey].push(event);
-          currentDate.setDate(currentDate.getDate() + 1);
-        }
-      } else {
-        const dateKey = format(startDate, 'yyyy-MM-dd');
-        if (!grouped[dateKey]) grouped[dateKey] = [];
-        grouped[dateKey].push(event);
-      }
-    });
-    
-    return grouped;
-  }, [events]);
 
   const uniqueLocations = useMemo(() => {
     return Array.from(new Set(events.map(e => e.location).filter((l): l is string => Boolean(l)))).sort();
@@ -155,7 +95,7 @@ export default function CalendarPage() {
   }, [events]);
 
   const filteredEvents = useMemo(() => {
-    return events
+    const filtered = events
       .filter(event => {
         if (filters.run_id !== null && event.run_id !== filters.run_id) return false;
         if (filters.location && event.location !== filters.location) return false;
@@ -178,6 +118,9 @@ export default function CalendarPage() {
         const dateB = b.start_datetime ? new Date(b.start_datetime) : new Date(0);
         return dateA.getTime() - dateB.getTime();
       });
+    
+    console.log('Filtered events count:', filtered.length);
+    return filtered;
   }, [events, filters]);
 
   const clearAllFilters = () => {
@@ -199,39 +142,46 @@ export default function CalendarPage() {
     return v !== '' && v !== null && (typeof v !== 'number' || v !== 0);
   });
 
-  const renderCalendar = () => {
-    const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-    const startingDayOfWeek = firstDayOfMonth.getDay();
-    const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
-    
-    const weeksToShow = getWeeksToShow(screenWidth);
-    const weeks: CalendarWeek[] = [];
-    
-    for (let weekNum = 0; weekNum < weeksToShow; weekNum++) {
-      const days: CalendarDay[] = [];
-      
-      const startDayOfWeek = weekNum === 0 ? startingDayOfWeek : 0;
-      
-      for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
-        const dayNum = weekNum * 7 + dayOfWeek + 1 - startDayOfWeek;
-        
-        if (dayNum > daysInMonth) {
-          const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayNum);
-          const dateKey = format(date, 'yyyy-MM-dd');
-          const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEvents.includes(e));
-          
-          days.push({
-            date,
-            dateKey,
-            events: dayEvents
-          });
-        }
+  const toggleDescriptionExpand = (eventId: number) => {
+    setExpandedEventIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(eventId)) {
+        newSet.delete(eventId);
+      } else {
+        newSet.add(eventId);
       }
-      
-      weeks.push({ days, weekNumber: weekNum + 1 });
+      return newSet;
+    });
+  };
+
+  const formatEventDateTime = (startDatetime: string | null, endDatetime: string | null) => {
+    if (!startDatetime) return { dateRange: null, timeRange: null };
+
+    const start = new Date(startDatetime);
+    const end = endDatetime ? new Date(endDatetime) : null;
+
+    if (!isValid(start)) return { dateRange: null, timeRange: null };
+
+    const formatDate = (date: Date) => format(date, 'MMM d, yyyy');
+    const formatTime = (date: Date) => format(date, 'h:mm a');
+
+    let dateRange: string;
+    let timeRange: string;
+
+    if (end && isValid(end)) {
+      if (isSameDay(start, end)) {
+        dateRange = formatDate(start);
+        timeRange = `${formatTime(start)} - ${formatTime(end)}`;
+      } else {
+        dateRange = `${formatDate(start)} - ${formatDate(end)}`;
+        timeRange = `${formatTime(start)} - ${formatTime(end)}`;
+      }
+    } else {
+      dateRange = formatDate(start);
+      timeRange = formatTime(start);
     }
-    
-    return weeks;
+
+    return { dateRange, timeRange };
   };
 
   return (
@@ -239,8 +189,8 @@ export default function CalendarPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Events Calendar</h1>
-            <p className="text-gray-600 dark:text-gray-400">Browse events by date</p>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">Events Gallery</h1>
+            <p className="text-gray-600 dark:text-gray-400">Browse and filter through discovered events</p>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Filter className="w-4 h-4" />
@@ -248,97 +198,134 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg border p-4 mb-8 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Filters</h2>
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-red-600 hover:text-red-700">
-                <X className="w-4 h-4 mr-2" />
-                Clear All
-              </Button>
-            )}
-          </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Run ID</label>
-              <Select value={filters.run_id?.toString() || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, run_id: v === 'all' ? null : Number(v) }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All runs" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All runs</SelectItem>
-                  {runs.map(run => (
-                    <SelectItem key={run.id} value={run.id.toString()}>
-                      Run {run.id} - {run.agent}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Filters
+              </CardTitle>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-red-600 hover:text-red-700">
+                  <X className="w-4 h-4 mr-2" />
+                  Clear All
+                </Button>
+              )}
             </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Run ID</label>
+                <Select value={filters.run_id?.toString() || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, run_id: v === 'all' ? null : Number(v) }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All runs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All runs</SelectItem>
+                    {runs.map(run => (
+                      <SelectItem key={run.id} value={run.id.toString()}>
+                        Run {run.id} - {run.agent}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Location</label>
-              <Select value={filters.location || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, location: v === 'all' ? '' : v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All locations</SelectItem>
-                  {uniqueLocations.map(location => (
-                    <SelectItem key={location} value={location}>{location}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Location</label>
+                <Select value={filters.location || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, location: v === 'all' ? '' : v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All locations" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All locations</SelectItem>
+                    {uniqueLocations.map(location => (
+                      <SelectItem key={location} value={location}>{location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">City</label>
-              <Select value={filters.city || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, city: v === 'all' ? '' : v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All cities" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All cities</SelectItem>
-                  {uniqueCities.map(city => (
-                    <SelectItem key={city} value={city}>{city}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">City</label>
+                <Select value={filters.city || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, city: v === 'all' ? '' : v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All cities" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All cities</SelectItem>
+                    {uniqueCities.map(city => (
+                      <SelectItem key={city} value={city}>{city}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Category</label>
-              <Select value={filters.category || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, category: v === 'all' ? '' : v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  {uniqueCategories.map(category => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date Range</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start text-left font-normal">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {filters.dateRange.from ? (
+                        filters.dateRange.to ? (
+                          <>
+                            {format(filters.dateRange.from, 'MMM d, yyyy')} - {format(filters.dateRange.to, 'MMM d, yyyy')}
+                          </>
+                        ) : (
+                          format(filters.dateRange.from, 'MMM d, yyyy')
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="range"
+                        selected={filters.dateRange}
+                        onSelect={(range) => setFilters(prev => ({ ...prev, dateRange: range || { from: undefined } }))}
+                        numberOfMonths={2}
+                      />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Source</label>
-              <Select value={filters.source || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, source: v === 'all' ? '' : v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All sources" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All sources</SelectItem>
-                  {uniqueSources.map(source => (
-                    <SelectItem key={source} value={source}>
-                      {source.length > 30 ? `${source.substring(0, 30)}...` : source}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <Select value={filters.category || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, category: v === 'all' ? '' : v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    {uniqueCategories.map(category => (
+                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Source</label>
+                <Select value={filters.source || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, source: v === 'all' ? '' : v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All sources</SelectItem>
+                    {uniqueSources.map(source => (
+                      <SelectItem key={source} value={source}>
+                        {source.length > 30 ? `${source.substring(0, 30)}...` : source}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {isLoading ? (
           <div className="text-center py-12">
@@ -346,80 +333,97 @@ export default function CalendarPage() {
             <p className="mt-4 text-gray-600">Loading events...</p>
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border p-16 text-center shadow-sm">
-            <Filter className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">No events found</h3>
-            <p className="text-gray-500 text-center">Try adjusting your filters or clear all filters to see all events.</p>
-          </div>
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-16">
+              <Filter className="w-16 h-16 text-gray-300 mb-4" />
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">No events found</h3>
+              <p className="text-gray-500 text-center">Try adjusting your filters or clear all filters to see all events.</p>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
-            <div className="flex items-center justify-between p-4 mb-4">
-              <button
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}
-                className="px-3 py-2 border rounded hover:bg-gray-100"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1, 1))}
-                  className="px-3 py-2 border rounded hover:bg-gray-100"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="text-center">
-                <button
-                  onClick={() => setCurrentMonth(new Date())}
-                  className="px-3 py-2 border rounded hover:bg-gray-100 text-sm"
-                >
-                  Today
-                </button>
-              </div>
-            </div>
-
-            <div className="p-4">
-              <div className="grid grid-cols-7 gap-2 mb-2 text-xs font-medium text-gray-500">
-                <div className="text-center w-8">Sun</div>
-                <div className="text-center w-8">Mon</div>
-                <div className="text-center w-8">Tue</div>
-                <div className="text-center w-8">Wed</div>
-                <div className="text-center w-8">Thu</div>
-                <div className="text-center w-8">Fri</div>
-                <div className="text-center w-8">Sat</div>
-              </div>
-              {renderCalendar().map(week => (
-                <div key={week.weekNumber} className="contents">
-                  {week.days.map(day => {
-                    if (day) {
-                      const dateKey = format(day.date, 'yyyy-MM-dd');
-                      const dateNum = day.date.getDate();
-                      
-                      return (
-                        <div key={dateKey} className="relative h-32 w-full p-1 border border-gray-100 hover:bg-gray-50">
-                          <div className="text-sm font-medium mb-1">{dateNum}</div>
-                          <div className="flex flex-col gap-1 overflow-y-auto max-h-24 pr-1">
-                            {day.events.map(event => (
-                              <CalendarEventChip
-                                key={event.id}
-                                event={event}
-                                onClick={() => setSelectedEvent(event)}
-                                colorClass={getCategoryColor(event.category)}
-                                showCity={true}
-                              />
-                            ))}
-                          </div>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredEvents.map((event) => {
+              const { dateRange, timeRange } = formatEventDateTime(event.start_datetime, event.end_datetime);
+              const isExpanded = expandedEventIds.has(event.id);
+              
+              return (
+                <Card key={event.id} className="hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                  <CardHeader>
+                    <CardTitle className="line-clamp-2 text-lg">{event.name}</CardTitle>
+                    {event.description && (
+                      <div className="space-y-1">
+                        <CardDescription className={isExpanded ? '' : 'line-clamp-3'}>{event.description}</CardDescription>
+                        <button
+                          onClick={() => toggleDescriptionExpand(event.id)}
+                          className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+                        >
+                          {isExpanded ? (
+                            <>
+                              Show less
+                              <ChevronUp className="h-3 w-3" />
+                            </>
+                          ) : (
+                            <>
+                              Show more
+                              <ChevronDown className="h-3 w-3" />
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 text-sm">
+                      {event.location && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Location:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{event.location}</span>
                         </div>
-                      );
-                    }
-                  })}
-                </div>
-              ))}
-            </div>
+                      )}
+                      {event.city && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">City:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{event.city}</span>
+                        </div>
+                      )}
+                      {dateRange && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Date:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{dateRange}</span>
+                        </div>
+                      )}
+                      {timeRange && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Time:</span>
+                          <span className="text-gray-600 dark:text-gray-400">{timeRange}</span>
+                        </div>
+                      )}
+                      {event.category && (
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">Category:</span>
+                          <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full text-xs capitalize">
+                            {event.category}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {event.source && (
+                      <a
+                        href={event.source}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
+                      >
+                        View Source
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
-
-        <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
       </div>
     </div>
   );
