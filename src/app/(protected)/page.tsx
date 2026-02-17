@@ -99,7 +99,7 @@ export default function Home() {
 
   const eventsByDate = useMemo(() => {
     if (!events.length) return {};
-    
+  
     const grouped: Record<string, Event[]> = {};
     
     events.forEach(event => {
@@ -123,6 +123,8 @@ export default function Home() {
         grouped[dateKey].push(event);
       }
     });
+    
+    console.log('eventsByDate built:', Object.keys(grouped).length, 'keys:', Object.keys(grouped).slice(0, 5));
     
     return grouped;
   }, [events]);
@@ -280,6 +282,8 @@ export default function Home() {
       
       const dateKey = format(currentDate, 'yyyy-MM-dd');
       const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
+      
+      console.log(`Day ${i}: ${dateKey}, events count: ${dayEvents.length}`);
       
       const dateNum = currentDate.getDate();
       const now = new Date();
