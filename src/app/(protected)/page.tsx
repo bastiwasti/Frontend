@@ -429,7 +429,7 @@ export default function Home() {
           <>
             <div className="bg-white dark:bg-gray-800 rounded-lg border p-4 mb-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium capitalize">{colorMode === 'city' ? 'Cities' : 'Categories'}</h3>
+                <h3 className="text-sm font-medium capitalize">{colorMode === 'city' ? 'Categories' : 'Cities'}</h3>
                 <Button
                   variant="outline"
                   size="sm"
@@ -440,7 +440,7 @@ export default function Home() {
                   className="flex items-center gap-2"
                 >
                   <Palette className="w-4 h-4" />
-                  <span className="text-xs">{colorMode === 'city' ? 'Change Color Cities' : 'Change Color Categories'}</span>
+                  <span className="text-xs">{colorMode === 'city' ? 'Change Color Categories' : 'Change Color Cities'}</span>
                 </Button>
               </div>
               <div className="flex flex-wrap gap-3">
