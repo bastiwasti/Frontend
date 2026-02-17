@@ -14,7 +14,9 @@ const formatDateUTC = (date: Date): string => {
   const year = date.getUTCFullYear();
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const day = String(date.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const dateStr = `${year}-${month}-${day}`;
+  console.log('formatDateUTC called:', date.toISOString(), '→', dateStr);
+  return dateStr;
 };
 
 interface Event {
@@ -286,8 +288,10 @@ export default function Home() {
     for (let i = 0; i < 7; i++) {
       const currentDate = addDays(mondayOfWindow, i);
       
-      const dateKey = format(currentDate, 'yyyy-MM-dd');
+      const dateKey = formatDateUTC(currentDate);
       const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
+      
+      console.log(`Day ${i} (${currentDate.toISOString()}): dateKey=${dateKey}, events=${dayEvents.length}`);
       
       console.log(`Day ${i}: ${dateKey}, events count: ${dayEvents.length}`);
       
