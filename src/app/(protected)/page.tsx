@@ -277,8 +277,7 @@ export default function Home() {
     const days: CalendarDay[] = [];
     
     for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(mondayOfWindow);
-      currentDate.setDate(mondayOfWindow.getDate() + i);
+      const currentDate = new Date(mondayOfWindow.getTime() + (i * 24 * 60 * 60 * 1000));
       
       const dateKey = format(currentDate, 'yyyy-MM-dd');
       const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
