@@ -119,10 +119,10 @@ export default function AnalyticsPage() {
   ];
 
   const filteredEvents = useMemo(() => {
-    if (dataSource === 'all') {
-      return events;
+    if (dataSource === 'all' || !selectedRunId) {
+      return events || [];
     }
-    return events.filter(event => event.run_id === selectedRunId);
+    return (events || []).filter(event => event.run_id === selectedRunId);
   }, [events, dataSource, selectedRunId]);
 
   const chartData = useMemo(() => {
@@ -155,26 +155,34 @@ export default function AnalyticsPage() {
       }
     };
 
-    const itemsToProcess = metric === 'count' ? filteredEvents : runs;
+    const itemsToProcess = metric === 'count' ? filteredEvents : (runs || []);
+
+    if (itemsToProcess.length === 0) {
+      return { x: [], y: [], text: [], type: chartType };
+    }
 
     if (!groupBy) {
       const aggregated: Record<string, { count: number; duration: number[]; events_found: number[]; valid_events: number[] }> = {};
 
       itemsToProcess.forEach(item => {
-        const value = getDimensionValue(item, dimension);
-        if (!aggregated[value]) {
-          aggregated[value] = { count: 0, duration: [], events_found: [], valid_events: [] };
-        }
-        aggregated[value].count++;
+        try {
+          const value = getDimensionValue(item, dimension);
+          if (!aggregated[value]) {
+            aggregated[value] = { count: 0, duration: [], events_found: [], valid_events: [] };
+          }
+          aggregated[value].count++;
 
-        if ('duration' in item && item.duration !== null) {
-          aggregated[value].duration.push(item.duration);
-        }
-        if ('events_found' in item && item.events_found !== null) {
-          aggregated[value].events_found.push(item.events_found);
-        }
-        if ('valid_events' in item && item.valid_events !== null) {
-          aggregated[value].valid_events.push(item.valid_events);
+          if ('duration' in item && item.duration !== null) {
+            aggregated[value].duration.push(item.duration);
+          }
+          if ('events_found' in item && item.events_found !== null) {
+            aggregated[value].events_found.push(item.events_found);
+          }
+          if ('valid_events' in item && item.valid_events !== null) {
+            aggregated[value].valid_events.push(item.valid_events);
+          }
+        } catch (error) {
+          console.error('Error processing item:', error, item);
         }
       });
 
@@ -219,29 +227,33 @@ export default function AnalyticsPage() {
       const groupTotals: Record<string, number> = {};
 
       itemsToProcess.forEach(item => {
-        const dimValue = getDimensionValue(item, dimension);
-        const groupValue = getDimensionValue(item, groupBy);
+        try {
+          const dimValue = getDimensionValue(item, dimension);
+          const groupValue = getDimensionValue(item, groupBy);
 
-        if (!groupedData[dimValue]) {
-          groupedData[dimValue] = {};
-        }
-        if (!groupedData[dimValue][groupValue]) {
-          groupedData[dimValue][groupValue] = { count: 0, duration: [], events_found: [], valid_events: [] };
-        }
+          if (!groupedData[dimValue]) {
+            groupedData[dimValue] = {};
+          }
+          if (!groupedData[dimValue][groupValue]) {
+            groupedData[dimValue][groupValue] = { count: 0, duration: [], events_found: [], valid_events: [] };
+          }
 
-        groupedData[dimValue][groupValue].count++;
+          groupedData[dimValue][groupValue].count++;
 
-        if ('duration' in item && item.duration !== null) {
-          groupedData[dimValue][groupValue].duration.push(item.duration);
-        }
-        if ('events_found' in item && item.events_found !== null) {
-          groupedData[dimValue][groupValue].events_found.push(item.events_found);
-        }
-        if ('valid_events' in item && item.valid_events !== null) {
-          groupedData[dimValue][groupValue].valid_events.push(item.valid_events);
-        }
+          if ('duration' in item && item.duration !== null) {
+            groupedData[dimValue][groupValue].duration.push(item.duration);
+          }
+          if ('events_found' in item && item.events_found !== null) {
+            groupedData[dimValue][groupValue].events_found.push(item.events_found);
+          }
+          if ('valid_events' in item && item.valid_events !== null) {
+            groupedData[dimValue][groupValue].valid_events.push(item.valid_events);
+          }
 
-        groupTotals[groupValue] = (groupTotals[groupValue] || 0) + 1;
+          groupTotals[groupValue] = (groupTotals[groupValue] || 0) + 1;
+        } catch (error) {
+          console.error('Error processing item:', error, item);
+        }
       });
 
       const sortedGroups = Object.keys(groupTotals)
@@ -252,7 +264,7 @@ export default function AnalyticsPage() {
 
       const traces = sortedGroups.map(groupValue => {
         const values = dimLabels.map(dimLabel => {
-          const data = groupedData[dimLabel][groupValue];
+          const data = groupedData[dimLabel]?.[groupValue];
           if (!data) return 0;
 
           switch (metric) {
