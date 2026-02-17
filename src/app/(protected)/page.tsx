@@ -99,7 +99,7 @@ export default function Home() {
 
   const eventsByDate = useMemo(() => {
     if (!events.length) return {};
-  
+    
     const grouped: Record<string, Event[]> = {};
     
     events.forEach(event => {
@@ -124,13 +124,14 @@ export default function Home() {
       }
     });
     
-    console.log('eventsByDate built:', Object.keys(grouped).length, 'keys:', Object.keys(grouped).slice(0, 5));
+    console.log('eventsByDate built:', Object.keys(grouped).length, 'sample keys:', Object.keys(grouped).slice(0, 10));
     
     return grouped;
   }, [events]);
 
   const handleDayClick = useCallback((date: Date) => {
     const dateKey = formatDateUTC(date);
+    console.log('handleDayClick called:', dateKey, 'events:', eventsByDate[dateKey]?.length);
     setSelectedDayEvents(eventsByDate[dateKey] || []);
   }, [eventsByDate]);
 
@@ -273,7 +274,12 @@ export default function Home() {
     const weeks: CalendarWeek[] = [];
     const filteredEventsSet = new Set(filteredEvents);
     
+    const referenceDayOfWeek = referenceDate.getDay();
+    const daysBack = referenceDayOfWeek === 0 ? 6 : referenceDayOfWeek - 1;
+    
     const mondayOfWindow = startOfWeek(referenceDate, { weekStartsOn: 1 });
+    
+    console.log('renderCalendar: referenceDate=', referenceDate.toISOString(), 'mondayOfWindow=', mondayOfWindow.toISOString());
     
     const days: CalendarDay[] = [];
     
