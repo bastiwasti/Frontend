@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Filter, ChevronLeft, ChevronRight, Palette } from 'lucide-react';
-import { format, isValid, isSameDay } from 'date-fns';
+import { format, isValid, isSameDay, startOfWeek, addDays } from 'date-fns';
 import { CalendarEventChip } from '@/components/calendar/calendar-event-chip';
 import { EventDetailsModal } from '@/components/calendar/event-details-modal';
 import { DayEventsModal } from '@/components/calendar/day-events-modal';
@@ -261,23 +261,15 @@ export default function Home() {
   }, [debouncedFilters]);
 
   const renderCalendar = useCallback(() => {
-    const start = new Date(referenceDate);
-    const end = new Date(referenceDate);
-    end.setDate(end.getDate() + 6);
-    
     const weeks: CalendarWeek[] = [];
     const filteredEventsSet = new Set(filteredEvents);
     
-    const referenceDayOfWeek = referenceDate.getDay();
-    const daysBack = referenceDayOfWeek === 0 ? 6 : referenceDayOfWeek - 1;
-    
-    const mondayOfWindow = new Date(referenceDate);
-    mondayOfWindow.setDate(referenceDate.getDate() - daysBack);
+    const mondayOfWindow = startOfWeek(referenceDate, { weekStartsOn: 1 });
     
     const days: CalendarDay[] = [];
     
     for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(mondayOfWindow.getTime() + (i * 24 * 60 * 60 * 1000));
+      const currentDate = addDays(mondayOfWindow, i);
       
       const dateKey = format(currentDate, 'yyyy-MM-dd');
       const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
