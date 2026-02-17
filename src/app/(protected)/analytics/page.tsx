@@ -5,6 +5,10 @@ import dynamic from 'next/dynamic';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format, isValid } from 'date-fns';
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false, loading: () => <div className="h-96 flex items-center justify-center">Loading chart...</div> });
 
@@ -31,6 +35,11 @@ interface Run {
   events_found: number | null;
   valid_events: number | null;
 }
+
+type DateRange = {
+  from: Date | undefined;
+  to?: Date | undefined;
+};
 
 type Dimension = 'category' | 'city' | 'source' | 'location' | 'agent' | 'month' | 'year' | 'day_of_week';
 type Metric = 'count' | 'avg_duration' | 'sum_duration' | 'events_found' | 'valid_events';
@@ -61,6 +70,7 @@ export default function AnalyticsPage() {
 
   const [dataSource, setDataSource] = useState<'all' | 'run'>('all');
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined });
 
   const [dimension, setDimension] = useState<Dimension>('category');
   const [groupBy, setGroupBy] = useState<Dimension | null>(null);
@@ -138,11 +148,28 @@ export default function AnalyticsPage() {
   ];
 
   const filteredEvents = useMemo(() => {
-    if (dataSource === 'all' || !selectedRunId) {
-      return events || [];
+    let filtered: Event[];
+
+    if (dataSource === 'all') {
+      filtered = events || [];
+    } else {
+      filtered = (events || []).filter(event => event.run_id === selectedRunId);
     }
-    return (events || []).filter(event => event.run_id === selectedRunId);
-  }, [events, dataSource, selectedRunId]);
+
+    if (dateRange.from || dateRange.to) {
+      filtered = filtered.filter(event => {
+        const startDate = event.start_datetime ? new Date(event.start_datetime) : null;
+        if (!startDate || !isValid(startDate)) return false;
+
+        if (dateRange.from && startDate < dateRange.from) return false;
+        if (dateRange.to && startDate > dateRange.to) return false;
+
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [events, dataSource, selectedRunId, dateRange]);
 
   const chartData = useMemo(() => {
     try {
@@ -319,7 +346,21 @@ export default function AnalyticsPage() {
   }, [dimension, groupBy, metric, chartType, filteredEvents, runs, isLoading]);
 
   const layout = {
-    title: `${metricOptions.find(m => m.value === metric)?.label} by ${dimensionOptions.find(d => d.value === dimension)?.label}${groupBy ? ` (Grouped by ${dimensionOptions.find(d => d.value === groupBy)?.label})` : ''}${dataSource === 'run' && selectedRunId ? ` (Run ${selectedRunId})` : ''}`,
+    title: (() => {
+      let title = `${metricOptions.find(m => m.value === metric)?.label} by ${dimensionOptions.find(d => d.value === dimension)?.label}`;
+      if (groupBy) {
+        title += ` (Grouped by ${dimensionOptions.find(d => d.value === groupBy)?.label})`;
+      }
+      if (dataSource === 'run' && selectedRunId) {
+        title += ` (Run ${selectedRunId})`;
+      }
+      if (dateRange.from || dateRange.to) {
+        const dateStr = dateRange.from ? format(dateRange.from, 'MMM d, yyyy') : '';
+        const dateStrEnd = dateRange.to ? ` - ${format(dateRange.to, 'MMM d, yyyy')}` : '';
+        title += ` (${dateStr}${dateStrEnd})`;
+      }
+      return title;
+    })(),
     xaxis: { title: dimensionOptions.find(d => d.value === dimension)?.label },
     yaxis: { title: metricOptions.find(m => m.value === metric)?.label },
     margin: { l: 80, r: 20, t: 60, b: 100 },
@@ -398,7 +439,7 @@ export default function AnalyticsPage() {
             <CardDescription>Select which data to analyze</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-3">
                 <Button
                   variant={dataSource === 'all' ? 'default' : 'outline'}
@@ -435,6 +476,33 @@ export default function AnalyticsPage() {
                   )}
                 </div>
               </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, 'MMM d, yyyy')} - {format(dateRange.to, 'MMM d, yyyy')}
+                        </>
+                      ) : (
+                        format(dateRange.from, 'MMM d, yyyy')
+                      )
+                    ) : (
+                      <span>Pick date range</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={(range) => setDateRange(range || { from: undefined })}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </CardContent>
         </Card>
