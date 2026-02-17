@@ -54,7 +54,7 @@ export default function Home() {
   const [referenceDate, setReferenceDate] = useState<Date>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDayEvents, setSelectedDayEvents] = useState<Event[] | null>(null);
-  const [colorMode, setColorMode] = useState<'city' | 'category' | 'source' | 'location'>('city');
+  const [colorMode, setColorMode] = useState<'city' | 'category'>('city');
   const [filters, setFilters] = useState<FilterState>({
     location: '',
     city: '',
@@ -181,22 +181,6 @@ export default function Home() {
     return colors;
   }, [uniqueCategories]);
 
-  const sourceColors = useMemo(() => {
-    const colors: Record<string, string> = {};
-    uniqueSources.forEach((source, index) => {
-      colors[source] = colorPalette[index % colorPalette.length];
-    });
-    return colors;
-  }, [uniqueSources]);
-
-  const locationColors = useMemo(() => {
-    const colors: Record<string, string> = {};
-    uniqueLocations.forEach((location, index) => {
-      colors[location] = colorPalette[index % colorPalette.length];
-    });
-    return colors;
-  }, [uniqueLocations]);
-
   const getColor = useCallback((value: string | null): string => {
     if (!value) return colorPalette[0];
 
@@ -205,14 +189,10 @@ export default function Home() {
         return cityColors[value] || colorPalette[0];
       case 'category':
         return categoryColors[value] || colorPalette[0];
-      case 'source':
-        return sourceColors[value] || colorPalette[0];
-      case 'location':
-        return locationColors[value] || colorPalette[0];
       default:
         return colorPalette[0];
     }
-  }, [colorMode, cityColors, categoryColors, sourceColors, locationColors]);
+  }, [colorMode, cityColors, categoryColors]);
 
   const windowDateRange = useMemo(() => {
     const start = new Date(referenceDate);
@@ -449,20 +429,18 @@ export default function Home() {
           <>
             <div className="bg-white dark:bg-gray-800 rounded-lg border p-4 mb-4 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium capitalize">{colorMode}s</h3>
+                <h3 className="text-sm font-medium capitalize">{colorMode === 'city' ? 'Cities' : 'Categories'}</h3>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const modes: Array<'city' | 'category' | 'source' | 'location'> = ['city', 'category', 'source', 'location'];
-                    const currentIndex = modes.indexOf(colorMode);
-                    const nextMode = modes[(currentIndex + 1) % modes.length];
+                    const nextMode = colorMode === 'city' ? 'category' : 'city';
                     setColorMode(nextMode);
                   }}
                   className="flex items-center gap-2"
                 >
                   <Palette className="w-4 h-4" />
-                  <span className="text-xs">Change Color</span>
+                  <span className="text-xs">{colorMode === 'city' ? 'Change Color Cities' : 'Change Color Categories'}</span>
                 </Button>
               </div>
               <div className="flex flex-wrap gap-3">
@@ -476,18 +454,6 @@ export default function Home() {
                   <div key={category} className="flex items-center gap-2">
                     <div className={`w-3 h-3 rounded-full ${categoryColors[category] || colorPalette[0]}`}></div>
                     <span className="text-sm text-gray-700 dark:text-gray-300">{category}</span>
-                  </div>
-                ))}
-                {colorMode === 'source' && uniqueSources.map(source => (
-                  <div key={source} className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${sourceColors[source] || colorPalette[0]}`}></div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{source}</span>
-                  </div>
-                ))}
-                {colorMode === 'location' && uniqueLocations.map(location => (
-                  <div key={location} className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${locationColors[location] || colorPalette[0]}`}></div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{location}</span>
                   </div>
                 ))}
               </div>
