@@ -104,10 +104,14 @@ export default function Home() {
     
     const grouped: Record<string, Event[]> = {};
     
-    events.forEach(event => {
-      if (!event.start_datetime) return;
+    events.forEach((event, index) => {
+      if (!event.start_datetime) {
+        console.log(`Event ${index}: missing start_datetime, skipping`);
+        return;
+      }
       
       const startDate = new Date(event.start_datetime + 'Z');
+      console.log(`Event ${index} (${event.name}): start=${event.start_datetime}, parsed=${startDate.toISOString()}`);
       
       if (event.end_datetime) {
         const endDate = new Date(event.end_datetime + 'Z');
@@ -126,7 +130,9 @@ export default function Home() {
       }
     });
     
-    console.log('eventsByDate built:', Object.keys(grouped).length, 'sample keys:', Object.keys(grouped).slice(0, 10));
+    const dateKeys = Object.keys(grouped);
+    console.log('eventsByDate built:', dateKeys.length, 'keys:', dateKeys.slice(0, 15));
+    console.log('First date:', dateKeys[0], 'Last date:', dateKeys[dateKeys.length - 1]);
     
     return grouped;
   }, [events]);
