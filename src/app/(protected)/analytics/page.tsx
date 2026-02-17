@@ -10,6 +10,7 @@ const Plot = dynamic(() => import('react-plotly.js'), { ssr: false, loading: () 
 
 interface Event {
   id: number;
+  run_id: number | null;
   name: string;
   description: string | null;
   location: string | null;
@@ -56,7 +57,10 @@ export default function AnalyticsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
+  const [dataSource, setDataSource] = useState<'all' | 'run'>('all');
+  const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
+
   const [dimension, setDimension] = useState<Dimension>('category');
   const [metric, setMetric] = useState<Metric>('count');
   const [chartType, setChartType] = useState<ChartType>('bar');
@@ -108,6 +112,13 @@ export default function AnalyticsPage() {
     { value: 'scatter', label: 'Scatter Plot' },
   ];
 
+  const filteredEvents = useMemo(() => {
+    if (dataSource === 'all') {
+      return events;
+    }
+    return events.filter(event => event.run_id === selectedRunId);
+  }, [events, dataSource, selectedRunId]);
+
   const chartData = useMemo(() => {
     if (isLoading) return { x: [], y: [], text: [], type: chartType };
 
@@ -158,7 +169,7 @@ export default function AnalyticsPage() {
       }
     };
 
-    const itemsToProcess = metric === 'count' ? events : runs;
+    const itemsToProcess = metric === 'count' ? filteredEvents : runs;
     itemsToProcess.forEach(item => processItem(item, dimension));
 
     const labels = Object.keys(aggregated);
@@ -197,10 +208,10 @@ export default function AnalyticsPage() {
         colorscale: 'Viridis',
       },
     };
-  }, [dimension, metric, chartType, events, runs, isLoading]);
+  }, [dimension, metric, chartType, filteredEvents, runs, isLoading]);
 
   const layout = {
-    title: `${metricOptions.find(m => m.value === metric)?.label} by ${dimensionOptions.find(d => d.value === dimension)?.label}`,
+    title: `${metricOptions.find(m => m.value === metric)?.label} by ${dimensionOptions.find(d => d.value === dimension)?.label}${dataSource === 'run' && selectedRunId ? ` (Run ${selectedRunId})` : ''}`,
     xaxis: { title: dimensionOptions.find(d => d.value === dimension)?.label },
     yaxis: { title: metricOptions.find(m => m.value === metric)?.label },
     margin: { l: 80, r: 20, t: 60, b: 100 },
@@ -209,10 +220,10 @@ export default function AnalyticsPage() {
   };
 
   const kpiCards = useMemo(() => {
-    const totalEvents = events.length;
-    const uniqueCategories = new Set(events.map(e => e.category)).size;
-    const uniqueCities = new Set(events.map(e => e.city)).size;
-    const uniqueSources = new Set(events.map(e => e.source)).size;
+    const totalEvents = filteredEvents.length;
+    const uniqueCategories = new Set(filteredEvents.map(e => e.category)).size;
+    const uniqueCities = new Set(filteredEvents.map(e => e.city)).size;
+    const uniqueSources = new Set(filteredEvents.map(e => e.source)).size;
 
     return [
       { label: 'Total Events', value: totalEvents },
@@ -220,7 +231,7 @@ export default function AnalyticsPage() {
       { label: 'Cities', value: uniqueCities },
       { label: 'Sources', value: uniqueSources },
     ];
-  }, [events]);
+  }, [filteredEvents]);
 
   if (isLoading) {
     return (
@@ -253,6 +264,53 @@ export default function AnalyticsPage() {
             </Card>
           ))}
         </div>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Data Source Filter</CardTitle>
+            <CardDescription>Select which data to analyze</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant={dataSource === 'all' ? 'default' : 'outline'}
+                  onClick={() => setDataSource('all')}
+                  className={dataSource === 'all' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  ALL EVENTS
+                </Button>
+                <span className="text-gray-400">or</span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant={dataSource === 'run' ? 'default' : 'outline'}
+                    onClick={() => setDataSource('run')}
+                    className={dataSource === 'run' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                  >
+                    Select Run ID
+                  </Button>
+                  {dataSource === 'run' && (
+                    <Select
+                      value={selectedRunId?.toString() || ''}
+                      onValueChange={(v) => setSelectedRunId(v ? parseInt(v) : null)}
+                    >
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Choose run" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {runs.map(run => (
+                          <SelectItem key={run.id} value={run.id.toString()}>
+                            Run {run.id} - {run.agent}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
