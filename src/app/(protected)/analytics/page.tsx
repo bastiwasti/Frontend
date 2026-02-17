@@ -94,6 +94,14 @@ export default function AnalyticsPage() {
     }
   }, [dimension, groupBy]);
 
+  const handleGroupByChange = (value: string) => {
+    if (value === '__none__') {
+      setGroupBy(null);
+    } else {
+      setGroupBy(value as Dimension | null);
+    }
+  };
+
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
       console.error('Global error:', event.error);
@@ -457,12 +465,12 @@ export default function AnalyticsPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Group By (Color)</label>
-                <Select value={groupBy || ''} onValueChange={(v) => setGroupBy(v as Dimension | null)}>
+                <Select value={groupBy || '__none__'} onValueChange={handleGroupByChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="__none__">None</SelectItem>
                     {dimensionOptions
                       .filter(opt => opt.value !== dimension)
                       .map(opt => (
