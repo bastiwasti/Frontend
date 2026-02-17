@@ -89,10 +89,6 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, [debouncedFilters]);
 
-  const handleDayClick = useCallback((date: Date) => {
-    setReferenceDate(date);
-  }, []);
-
   const eventsByDate = useMemo(() => {
     if (!events.length) return {};
     
@@ -122,6 +118,11 @@ export default function Home() {
     
     return grouped;
   }, [events]);
+
+  const handleDayClick = useCallback((date: Date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    setSelectedDayEvents(eventsByDate[dateKey] || []);
+  }, [eventsByDate]);
 
   const cityColorPalette = [
     'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
@@ -467,15 +468,14 @@ export default function Home() {
                       );
                     }
                     
-                    const dateKey = format(day.date, 'yyyy-MM-dd');
-                    
-                    const dateNum = day.date.getDate();
-                    const isReferenceDay = isSameDay(day.date, referenceDate);
-                    const isToday = isSameDay(day.date, new Date());
-                    
-                    return (
-                      <div key={dateKey} className={`relative h-32 w-full p-1 border border-gray-100 hover:bg-gray-50 cursor-pointer ${isReferenceDay ? 'bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-500 dark:ring-blue-400' : ''} ${isToday && !isReferenceDay ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500 dark:ring-blue-400' : ''}`} onClick={() => day.date && handleDayClick(day.date)}>
-                        <div className={`text-sm font-medium mb-1 ${isReferenceDay ? 'text-blue-600 dark:text-blue-400 font-bold' : ''} ${isToday && !isReferenceDay ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}`}>{day.date ? day.date.getDate() : ''}</div>
+                     const dateKey = format(day.date, 'yyyy-MM-dd');
+                     
+                     const dateNum = day.date.getDate();
+                     const isToday = isSameDay(day.date, new Date());
+                     
+                     return (
+                       <div key={dateKey} className={`relative h-32 w-full p-1 border border-gray-100 hover:bg-gray-50 cursor-pointer ${isToday ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500 dark:ring-blue-400' : ''}`} onClick={() => day.date && handleDayClick(day.date)}>
+                         <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}`}>{day.date ? day.date.getDate() : ''}</div>
                         <div className="flex flex-col gap-1 overflow-y-auto max-h-24 pr-1">
                           {day.events.slice(0, 3).map((event: Event) => (
                             <CalendarEventChip

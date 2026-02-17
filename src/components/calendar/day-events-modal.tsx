@@ -44,7 +44,7 @@ export function DayEventsModal({ date, events, onClose }: DayEventsModalProps) {
 
   return (
     <Dialog open={!!date} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[80vw] max-w-[80vw] h-[80vh] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl">
