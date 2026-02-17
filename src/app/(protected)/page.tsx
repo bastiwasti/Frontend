@@ -279,14 +279,13 @@ export default function Home() {
     const referenceDayOfWeek = referenceDate.getDay();
     const daysBack = referenceDayOfWeek === 0 ? 6 : referenceDayOfWeek - 1;
     
-    const mondayOfWindow = startOfWeek(referenceDate, { weekStartsOn: 1 });
-    
-    console.log('renderCalendar: referenceDate=', referenceDate.toISOString(), 'mondayOfWindow=', mondayOfWindow.toISOString());
+    const mondayOfWindow = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate() - daysBack);
+    mondayOfWindow.setHours(0, 0, 0, 0);
     
     const days: CalendarDay[] = [];
     
     for (let i = 0; i < 7; i++) {
-      const currentDate = addDays(mondayOfWindow, i);
+      const currentDate = new Date(mondayOfWindow.getTime() + (i * 24 * 60 * 60 * 1000));
       
       const dateKey = formatDateUTC(currentDate);
       const dayEvents = (eventsByDate[dateKey] || []).filter(e => filteredEventsSet.has(e));
