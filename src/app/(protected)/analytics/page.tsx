@@ -277,8 +277,7 @@ export default function AnalyticsPage() {
       });
 
       const sortedGroups = Object.keys(groupTotals)
-        .sort((a, b) => groupTotals[b] - groupTotals[a])
-        .slice(0, 3);
+        .sort((a, b) => groupTotals[b] - groupTotals[a]);
 
       const dimLabels = Object.keys(groupedData).sort();
 
