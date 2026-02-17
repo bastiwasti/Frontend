@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Filter, ChevronLeft, ChevronRight, Palette } from 'lucide-react';
 import { format, isValid, isSameDay } from 'date-fns';
 import { CalendarEventChip } from '@/components/calendar/calendar-event-chip';
 import { EventDetailsModal } from '@/components/calendar/event-details-modal';
@@ -54,6 +54,7 @@ export default function Home() {
   const [referenceDate, setReferenceDate] = useState<Date>(new Date());
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedDayEvents, setSelectedDayEvents] = useState<Event[] | null>(null);
+  const [colorMode, setColorMode] = useState<'city' | 'category' | 'source' | 'location'>('city');
   const [filters, setFilters] = useState<FilterState>({
     location: '',
     city: '',
@@ -124,7 +125,7 @@ export default function Home() {
     setSelectedDayEvents(eventsByDate[dateKey] || []);
   }, [eventsByDate]);
 
-  const cityColorPalette = [
+  const colorPalette = [
     'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
     'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
     'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100',
@@ -149,18 +150,6 @@ export default function Home() {
     return Array.from(new Set(events.map(e => e.city).filter((c): c is string => Boolean(c)))).sort();
   }, [events]);
 
-  const cityColors = useMemo(() => {
-    const colors: Record<string, string> = {};
-    uniqueCities.forEach((city, index) => {
-      colors[city] = cityColorPalette[index % cityColorPalette.length];
-    });
-    return colors;
-  }, [uniqueCities]);
-
-  const getCityColor = useCallback((city: string | null): string => {
-    return city && cityColors[city] ? cityColors[city] : cityColorPalette[0];
-  }, [cityColors]);
-
   const uniqueLocations = useMemo(() => {
     if (!events.length) return [];
     return Array.from(new Set(events.map(e => e.location).filter((l): l is string => Boolean(l)))).sort();
@@ -175,6 +164,55 @@ export default function Home() {
     if (!events.length) return [];
     return Array.from(new Set(events.map(e => e.source).filter((s): s is string => Boolean(s)))).sort();
   }, [events]);
+
+  const cityColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    uniqueCities.forEach((city, index) => {
+      colors[city] = colorPalette[index % colorPalette.length];
+    });
+    return colors;
+  }, [uniqueCities]);
+
+  const categoryColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    uniqueCategories.forEach((category, index) => {
+      colors[category] = colorPalette[index % colorPalette.length];
+    });
+    return colors;
+  }, [uniqueCategories]);
+
+  const sourceColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    uniqueSources.forEach((source, index) => {
+      colors[source] = colorPalette[index % colorPalette.length];
+    });
+    return colors;
+  }, [uniqueSources]);
+
+  const locationColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    uniqueLocations.forEach((location, index) => {
+      colors[location] = colorPalette[index % colorPalette.length];
+    });
+    return colors;
+  }, [uniqueLocations]);
+
+  const getColor = useCallback((value: string | null): string => {
+    if (!value) return colorPalette[0];
+
+    switch (colorMode) {
+      case 'city':
+        return cityColors[value] || colorPalette[0];
+      case 'category':
+        return categoryColors[value] || colorPalette[0];
+      case 'source':
+        return sourceColors[value] || colorPalette[0];
+      case 'location':
+        return locationColors[value] || colorPalette[0];
+      default:
+        return colorPalette[0];
+    }
+  }, [colorMode, cityColors, categoryColors, sourceColors, locationColors]);
 
   const windowDateRange = useMemo(() => {
     const start = new Date(referenceDate);
@@ -409,19 +447,51 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {uniqueCities.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg border p-4 mb-4 shadow-sm">
-                <h3 className="text-sm font-medium mb-3">Cities</h3>
-                <div className="flex flex-wrap gap-3">
-                  {uniqueCities.map(city => (
-                    <div key={city} className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full ${cityColors[city] || cityColorPalette[0]}`}></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{city}</span>
-                    </div>
-                  ))}
-                </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border p-4 mb-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium capitalize">{colorMode}s</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const modes: Array<'city' | 'category' | 'source' | 'location'> = ['city', 'category', 'source', 'location'];
+                    const currentIndex = modes.indexOf(colorMode);
+                    const nextMode = modes[(currentIndex + 1) % modes.length];
+                    setColorMode(nextMode);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Palette className="w-4 h-4" />
+                  <span className="text-xs">Change Color</span>
+                </Button>
               </div>
-            )}
+              <div className="flex flex-wrap gap-3">
+                {colorMode === 'city' && uniqueCities.map(city => (
+                  <div key={city} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${cityColors[city] || colorPalette[0]}`}></div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{city}</span>
+                  </div>
+                ))}
+                {colorMode === 'category' && uniqueCategories.map(category => (
+                  <div key={category} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${categoryColors[category] || colorPalette[0]}`}></div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{category}</span>
+                  </div>
+                ))}
+                {colorMode === 'source' && uniqueSources.map(source => (
+                  <div key={source} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${sourceColors[source] || colorPalette[0]}`}></div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{source}</span>
+                  </div>
+                ))}
+                {colorMode === 'location' && uniqueLocations.map(location => (
+                  <div key={location} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded-full ${locationColors[location] || colorPalette[0]}`}></div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{location}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
             <div className="flex items-center justify-between p-4 mb-4">
               <button
@@ -482,7 +552,7 @@ export default function Home() {
                               key={event.id}
                               event={event}
                               onClick={() => setSelectedEvent(event)}
-                              colorClass={getCityColor(event.city)}
+                              colorClass={getColor(event.city)}
                               showCity={false}
                             />
                           ))}
