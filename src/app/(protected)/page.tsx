@@ -107,10 +107,10 @@ export default function Home() {
     events.forEach(event => {
       if (!event.start_datetime) return;
       
-      const startDate = new Date(event.start_datetime);
+      const startDate = new Date(event.start_datetime + 'Z');
       
       if (event.end_datetime) {
-        const endDate = new Date(event.end_datetime);
+        const endDate = new Date(event.end_datetime + 'Z');
         const currentDate = new Date(startDate);
         
         while (currentDate <= endDate) {
