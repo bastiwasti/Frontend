@@ -20,16 +20,17 @@ interface Event {
   end_datetime: string | null;
   category: string | null;
   source: string | null;
+  created_at: string;
 }
 
 interface DayEventsModalProps {
   date: Date | null;
   events: Event[];
   onClose: () => void;
+  onEventClick: (event: Event) => void;
 }
 
-export function DayEventsModal({ date, events, onClose }: DayEventsModalProps) {
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+export function DayEventsModal({ date, events, onClose, onEventClick }: DayEventsModalProps) {
 
   if (!events || events.length === 0) return null;
 
@@ -61,7 +62,7 @@ export function DayEventsModal({ date, events, onClose }: DayEventsModalProps) {
 
         <div className="space-y-3">
           {events.map((event: Event) => (
-            <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setSelectedEvent(event)}>
+            <div key={event.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => onEventClick(event)}>
               <div className="flex items-start justify-between gap-4 mb-2">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">

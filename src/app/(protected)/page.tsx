@@ -504,6 +504,7 @@ export default function Home() {
           date={selectedDayEvents?.length ? new Date(selectedDayEvents[0].start_datetime || '') : null}
           events={selectedDayEvents || []}
           onClose={() => setSelectedDayEvents(null)}
+          onEventClick={setSelectedEvent}
         />
         <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
       </div>
