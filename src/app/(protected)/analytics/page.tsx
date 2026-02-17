@@ -57,6 +57,7 @@ export default function AnalyticsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [runs, setRuns] = useState<Run[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [chartError, setChartError] = useState<string | null>(null);
 
   const [dataSource, setDataSource] = useState<'all' | 'run'>('all');
   const [selectedRunId, setSelectedRunId] = useState<number | null>(null);
@@ -93,6 +94,16 @@ export default function AnalyticsPage() {
     }
   }, [dimension, groupBy]);
 
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Global error:', event.error);
+      setChartError(event.error?.message || 'Unknown error');
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
   const dimensionOptions: DimensionOption[] = [
     { value: 'category', label: 'Category', description: 'Event category' },
     { value: 'city', label: 'City', description: 'Event city' },
@@ -126,42 +137,43 @@ export default function AnalyticsPage() {
   }, [events, dataSource, selectedRunId]);
 
   const chartData = useMemo(() => {
-    if (isLoading) return { x: [], y: [], text: [], type: chartType };
+    try {
+      if (isLoading) return { x: [], y: [], text: [], type: chartType };
 
-    const getDimensionValue = (item: Event | Run, dim: Dimension): string => {
-      const isEvent = 'category' in item;
-      const date = isEvent ? (item as Event).start_datetime || item.created_at : item.created_at;
-      const d = date ? new Date(date) : new Date();
+      const getDimensionValue = (item: Event | Run, dim: Dimension): string => {
+        const isEvent = 'category' in item;
+        const date = isEvent ? (item as Event).start_datetime || item.created_at : item.created_at;
+        const d = date ? new Date(date) : new Date();
 
-      switch (dim) {
-        case 'category':
-          return isEvent ? ((item as Event).category || 'Unknown') : 'Unknown';
-        case 'city':
-          return isEvent ? ((item as Event).city || 'Unknown') : ((item as Run).cities || 'Unknown');
-        case 'source':
-          return isEvent ? ((item as Event).source || 'Unknown') : 'Unknown';
-        case 'location':
-          return isEvent ? ((item as Event).location || 'Unknown') : 'Unknown';
-        case 'agent':
-          return isEvent ? 'Unknown' : (item as Run).agent;
-        case 'month':
-          return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        case 'year':
-          return d.getFullYear().toString();
-        case 'day_of_week':
-          return d.toLocaleDateString('en-US', { weekday: 'long' });
-        default:
-          return 'Unknown';
+        switch (dim) {
+          case 'category':
+            return isEvent ? ((item as Event).category || 'Unknown') : 'Unknown';
+          case 'city':
+            return isEvent ? ((item as Event).city || 'Unknown') : ((item as Run).cities || 'Unknown');
+          case 'source':
+            return isEvent ? ((item as Event).source || 'Unknown') : 'Unknown';
+          case 'location':
+            return isEvent ? ((item as Event).location || 'Unknown') : 'Unknown';
+          case 'agent':
+            return isEvent ? 'Unknown' : (item as Run).agent;
+          case 'month':
+            return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+          case 'year':
+            return d.getFullYear().toString();
+          case 'day_of_week':
+            return d.toLocaleDateString('en-US', { weekday: 'long' });
+          default:
+            return 'Unknown';
+        }
+      };
+
+      const itemsToProcess = metric === 'count' ? filteredEvents : (runs || []);
+
+      if (!itemsToProcess || itemsToProcess.length === 0) {
+        return { x: [], y: [], text: [], type: chartType };
       }
-    };
 
-    const itemsToProcess = metric === 'count' ? filteredEvents : (runs || []);
-
-    if (itemsToProcess.length === 0) {
-      return { x: [], y: [], text: [], type: chartType };
-    }
-
-    if (!groupBy) {
+      if (!groupBy) {
       const aggregated: Record<string, { count: number; duration: number[]; events_found: number[]; valid_events: number[] }> = {};
 
       itemsToProcess.forEach(item => {
@@ -293,6 +305,10 @@ export default function AnalyticsPage() {
 
       return traces;
     }
+    } catch (error) {
+      console.error('Error computing chart data:', error);
+      return { x: [], y: [], text: [], type: chartType };
+    }
   }, [dimension, groupBy, metric, chartType, filteredEvents, runs, isLoading]);
 
   const layout = {
@@ -307,10 +323,11 @@ export default function AnalyticsPage() {
   };
 
   const kpiCards = useMemo(() => {
-    const totalEvents = filteredEvents.length;
-    const uniqueCategories = new Set(filteredEvents.map(e => e.category)).size;
-    const uniqueCities = new Set(filteredEvents.map(e => e.city)).size;
-    const uniqueSources = new Set(filteredEvents.map(e => e.source)).size;
+    const eventsToUse = filteredEvents || [];
+    const totalEvents = eventsToUse.length;
+    const uniqueCategories = new Set(eventsToUse.map(e => e.category)).size;
+    const uniqueCities = new Set(eventsToUse.map(e => e.city)).size;
+    const uniqueSources = new Set(eventsToUse.map(e => e.source)).size;
 
     return [
       { label: 'Total Events', value: totalEvents },
@@ -328,6 +345,22 @@ export default function AnalyticsPage() {
           <div className="text-center py-12">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-e-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
             <p className="mt-4 text-gray-600">Loading analytics...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (chartError) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 px-4">
+        <div className="max-w-7xl mx-auto">
+          <h1 className="text-4xl font-bold text-gray-900 mb-8">Analytics</h1>
+          <div className="text-center py-12">
+            <p className="text-red-500 mb-4">Error: {chartError}</p>
+            <button onClick={() => window.location.reload()} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+              Reload Page
+            </button>
           </div>
         </div>
       </div>
@@ -474,12 +507,22 @@ export default function AnalyticsPage() {
               </div>
             </div>
 
-            <Plot
-              data={Array.isArray(chartData) ? chartData as any : [chartData as any]}
-              layout={layout as any}
-              config={{ responsive: true, displayModeBar: true }}
-              style={{ width: '100%', height: '500px' }}
-            />
+            {(!filteredEvents || filteredEvents.length === 0) ? (
+              <div className="flex items-center justify-center h-[500px] text-gray-500">
+                No data available for the selected filters
+              </div>
+            ) : chartError ? (
+              <div className="flex items-center justify-center h-[500px] text-red-500">
+                Error loading chart: {chartError}
+              </div>
+            ) : (
+              <Plot
+                data={Array.isArray(chartData) ? chartData as any : [chartData as any]}
+                layout={layout as any}
+                config={{ responsive: true, displayModeBar: true }}
+                style={{ width: '100%', height: '500px' }}
+              />
+            )}
           </CardContent>
         </Card>
       </div>
