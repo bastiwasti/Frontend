@@ -111,27 +111,14 @@ export default function Home() {
       }
       
       const startDate = new Date(event.start_datetime + 'Z');
-      console.log(`Event ${index} (${event.name}): start=${event.start_datetime}, parsed=${startDate.toISOString()}`);
       
-      if (event.end_datetime) {
-        const endDate = new Date(event.end_datetime + 'Z');
-        const currentDate = new Date(startDate);
-        
-        while (currentDate <= endDate) {
-          const dateKey = formatDateUTC(currentDate);
-          if (!grouped[dateKey]) grouped[dateKey] = [];
-          grouped[dateKey].push(event);
-          currentDate.setDate(currentDate.getDate() + 1);
-        }
-      } else {
-        const dateKey = formatDateUTC(startDate);
-        if (!grouped[dateKey]) grouped[dateKey] = [];
-        grouped[dateKey].push(event);
-      }
+      const dateKey = formatDateUTC(startDate);
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push(event);
     });
     
     const dateKeys = Object.keys(grouped);
-    console.log('eventsByDate built:', dateKeys.length, 'keys:', dateKeys.slice(0, 15));
+    console.log('eventsByDate built:', dateKeys.length, 'sample keys:', dateKeys.slice(0, 15));
     console.log('First date:', dateKeys[0], 'Last date:', dateKeys[dateKeys.length - 1]);
     
     return grouped;
