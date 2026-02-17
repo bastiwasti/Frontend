@@ -10,6 +10,13 @@ import { EventDetailsModal } from '@/components/calendar/event-details-modal';
 import { DayEventsModal } from '@/components/calendar/day-events-modal';
 import { useDebounce } from '@/hooks/use-debounce';
 
+const formatDateUTC = (date: Date): string => {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 interface Event {
   id: number;
   name: string;
@@ -105,13 +112,13 @@ export default function Home() {
         const currentDate = new Date(startDate);
         
         while (currentDate <= endDate) {
-          const dateKey = format(currentDate, 'yyyy-MM-dd');
+          const dateKey = formatDateUTC(currentDate);
           if (!grouped[dateKey]) grouped[dateKey] = [];
           grouped[dateKey].push(event);
           currentDate.setDate(currentDate.getDate() + 1);
         }
       } else {
-        const dateKey = format(startDate, 'yyyy-MM-dd');
+        const dateKey = formatDateUTC(startDate);
         if (!grouped[dateKey]) grouped[dateKey] = [];
         grouped[dateKey].push(event);
       }
@@ -121,7 +128,7 @@ export default function Home() {
   }, [events]);
 
   const handleDayClick = useCallback((date: Date) => {
-    const dateKey = format(date, 'yyyy-MM-dd');
+    const dateKey = formatDateUTC(date);
     setSelectedDayEvents(eventsByDate[dateKey] || []);
   }, [eventsByDate]);
 
