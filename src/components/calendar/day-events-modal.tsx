@@ -9,19 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { CalendarEventChip } from './calendar-event-chip';
-
-interface Event {
-  id: number;
-  name: string;
-  description: string | null;
-  location: string | null;
-  city: string | null;
-  start_datetime: string | null;
-  end_datetime: string | null;
-  category: string | null;
-  source: string | null;
-  created_at: string;
-}
+import type { Event } from '@/types';
 
 interface DayEventsModalProps {
   date: Date | null;

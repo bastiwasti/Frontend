@@ -1,37 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-
-interface Run {
-  id: number;
-  agent: string;
-  cities: string | null;
-  created_at: string;
-  raw_summary_id: number | null;
-  duration: number | null;
-  events_found: number | null;
-  valid_events: number | null;
-  start_time: string | null;
-  end_time: string | null;
-}
+import { useRuns } from '@/hooks/use-runs';
 
 export default function StatusPage() {
-  const [runs, setRuns] = useState<Run[]>([]);
+  const { runs } = useRuns();
 
-  useEffect(() => {
-    async function fetchRuns() {
-      try {
-        const runsRes = await fetch('/api/runs');
-        const runsData = await runsRes.json();
-        setRuns(runsData);
-      } catch (error) {
-        console.error('Error fetching runs:', error);
-      }
-    }
-    fetchRuns();
-  }, []);
-
-        return (
+  return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Run Status</h1>
@@ -64,9 +38,9 @@ export default function StatusPage() {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.duration ? `${run.duration.toFixed(2)}s` : 'N/A'}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.events_found ?? 0}</td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.valid_events ?? 0}</td>
-                  <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.start_time ? new Date(run.start_time).toLocaleString() : 'N/A'}</td>
-                  <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.end_time ? new Date(run.end_time).toLocaleString() : 'N/A'}</td>
-                    <td className="page-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.raw_summary_id ?? 'N/A'}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.start_time ? new Date(run.start_time).toLocaleString() : 'N/A'}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.end_time ? new Date(run.end_time).toLocaleString() : 'N/A'}</td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.raw_summary_id ?? 'N/A'}</td>
                   </tr>
                 ))}
               </tbody>

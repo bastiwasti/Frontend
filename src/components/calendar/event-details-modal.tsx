@@ -9,18 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-interface Event {
-  id: number;
-  name: string;
-  description: string | null;
-  location: string | null;
-  city: string | null;
-  start_datetime: string | null;
-  end_datetime: string | null;
-  category: string | null;
-  source: string | null;
-}
+import type { Event } from '@/types';
+import { formatEventDateTime } from '@/lib/event-utils';
 
 interface EventDetailsModalProps {
   event: Event | null;
@@ -40,7 +30,7 @@ function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) 
           <DialogTitle className="text-xl">{event.name}</DialogTitle>
           {event.description && (
             <div className="space-y-1">
-              <DialogDescription 
+              <DialogDescription
                 className={isDescriptionExpanded ? '' : 'line-clamp-3'}
               >
                 {event.description}
@@ -133,41 +123,6 @@ function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) 
       </DialogContent>
     </Dialog>
   );
-}
-
-function formatEventDateTime(startDatetime: string | null, endDatetime: string | null) {
-  if (!startDatetime) return { dateRange: null, timeRange: null };
-
-  const start = new Date(startDatetime);
-  const end = endDatetime ? new Date(endDatetime) : null;
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-  };
-
-  let dateRange: string;
-  let timeRange: string;
-
-  if (end) {
-    const startDay = start.toDateString();
-    const endDay = end.toDateString();
-
-    if (startDay === endDay) {
-      dateRange = formatDate(start);
-      timeRange = `${formatTime(start)} - ${formatTime(end)}`;
-    } else {
-      dateRange = `${formatDate(start)} - ${formatDate(end)}`;
-      timeRange = `${formatTime(start)} - ${formatTime(end)}`;
-    }
-  } else {
-    dateRange = formatDate(start);
-    timeRange = formatTime(start);
-  }
-
-  return { dateRange, timeRange };
 }
 
 export const EventDetailsModal = memo(EventDetailsModalComponent);
