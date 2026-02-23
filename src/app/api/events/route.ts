@@ -9,12 +9,15 @@ export async function GET(request: Request) {
 
     const db = new Database(DB_PATH, { readonly: true });
 
+    const eventCols = `e.id, e.run_id, e.name, e.description, e.location, e.city,
+               e.start_datetime, e.end_datetime, e.category, e.source, e.created_at`;
+
     let events;
     if (runId) {
       events = db.prepare(`
-        SELECT e.*, r.agent, r.cities as run_cities, 
-               s.duration as run_duration, 
-               s.events_found as run_events_found, 
+        SELECT ${eventCols}, r.agent, r.cities as run_cities,
+               s.duration as run_duration,
+               s.events_found as run_events_found,
                s.valid_events as run_valid_events
         FROM events e
         LEFT JOIN runs r ON e.run_id = r.id
@@ -25,7 +28,7 @@ export async function GET(request: Request) {
     } else {
       events = db.prepare(`
         WITH ranked_events AS (
-          SELECT e.*, r.agent, r.cities as run_cities,
+          SELECT ${eventCols}, r.agent, r.cities as run_cities,
                  s.duration as run_duration, s.events_found as run_events_found,
                  s.valid_events as run_valid_events,
                  ROW_NUMBER() OVER (
@@ -42,7 +45,9 @@ export async function GET(request: Request) {
     }
 
     db.close();
-    return NextResponse.json(events);
+    const response = NextResponse.json(events);
+    response.headers.set('Cache-Control', 'public, max-age=300');
+    return response;
   } catch (error) {
     console.error('Error fetching events:', error);
     return NextResponse.json({ error: 'Failed to fetch events' }, { status: 500 });

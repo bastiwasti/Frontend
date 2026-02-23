@@ -17,7 +17,9 @@ export async function GET() {
       ORDER BY r.id DESC
     `).all();
     db.close();
-    return NextResponse.json(runs);
+    const response = NextResponse.json(runs);
+    response.headers.set('Cache-Control', 'public, max-age=300');
+    return response;
   } catch {
     return NextResponse.json({ error: 'Failed to fetch runs' }, { status: 500 });
   }
