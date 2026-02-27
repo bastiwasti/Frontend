@@ -9,6 +9,7 @@ export interface Event {
   end_datetime: string | null;
   category: string | null;
   source: string | null;
+  origin: string | null;
   created_at: string;
 }
 
@@ -31,10 +32,11 @@ export type DateRange = {
 };
 
 export interface BaseFilterState {
-  location: string;
-  city: string;
-  category: string;
-  source: string;
+  location: string[];
+  city: string[];
+  category: string[];
+  source: string[];
+  origin: string[];
   dateRange: DateRange;
 }
 
@@ -47,6 +49,7 @@ export type Dimension =
   | 'city'
   | 'source'
   | 'location'
+  | 'origin'
   | 'agent'
   | 'month'
   | 'year'

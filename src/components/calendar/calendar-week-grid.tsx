@@ -1,142 +1,149 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { CalendarEventChip } from '@/components/calendar/calendar-event-chip';
 import { formatDateLocal } from '@/lib/event-utils';
 import type { Event } from '@/types';
 
 interface CalendarDay {
-  date: Date | null;
+  date: Date;
   dateKey: string;
   events: Event[];
+  isCurrentMonth: boolean;
 }
 
-interface CalendarWeek {
-  days: CalendarDay[];
-  weekNumber: number;
-}
-
-interface CalendarWeekGridProps {
+interface CalendarMonthGridProps {
   referenceDate: Date;
   eventsByDate: Record<string, Event[]>;
   onNavigatePrev: () => void;
   onNavigateNext: () => void;
   onResetToToday: () => void;
   onDayClick: (date: Date) => void;
-  onEventClick: (event: Event) => void;
-  getColor: (value: string | null) => string;
 }
 
-export function CalendarWeekGrid({
+export function CalendarMonthGrid({
   referenceDate,
   eventsByDate,
   onNavigatePrev,
   onNavigateNext,
   onResetToToday,
   onDayClick,
-  onEventClick,
-  getColor,
-}: CalendarWeekGridProps) {
-  const weeks = useMemo<CalendarWeek[]>(() => {
-    const referenceDayOfWeek = referenceDate.getDay();
-    const daysBack = referenceDayOfWeek === 0 ? 6 : referenceDayOfWeek - 1;
+}: CalendarMonthGridProps) {
+  const days = useMemo<CalendarDay[]>(() => {
+    const year = referenceDate.getFullYear();
+    const month = referenceDate.getMonth();
 
-    const days: CalendarDay[] = [];
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
 
-    for (let i = 0; i < 7; i++) {
-      const year = referenceDate.getFullYear();
-      const month = referenceDate.getMonth();
-      const dayOfMonth = referenceDate.getDate() - daysBack + i;
-      const currentDate = new Date(year, month, dayOfMonth, 0, 0, 0, 0);
+    // Monday-based: Mon=0 ... Sun=6
+    const firstDayOfWeek = firstDay.getDay(); // 0=Sun, 1=Mon, ...
+    const daysBeforeFirst = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
-      const dateKey = formatDateLocal(currentDate);
-      const dayEvents = eventsByDate[dateKey] || [];
+    const result: CalendarDay[] = [];
 
-      days.push({ date: currentDate, dateKey, events: dayEvents });
+    // Trailing days from previous month
+    for (let i = daysBeforeFirst - 1; i >= 0; i--) {
+      const date = new Date(year, month, -i); // 0 = last of prev month, -1 = 2nd-to-last, etc.
+      const dateKey = formatDateLocal(date);
+      result.push({ date, dateKey, events: eventsByDate[dateKey] || [], isCurrentMonth: false });
     }
 
-    return [{ days, weekNumber: 1 }];
+    // Current month days
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      const date = new Date(year, month, d);
+      const dateKey = formatDateLocal(date);
+      result.push({ date, dateKey, events: eventsByDate[dateKey] || [], isCurrentMonth: true });
+    }
+
+    // Leading days from next month to fill last week
+    const remainder = result.length % 7;
+    if (remainder !== 0) {
+      const toAdd = 7 - remainder;
+      for (let i = 1; i <= toAdd; i++) {
+        const date = new Date(year, month + 1, i);
+        const dateKey = formatDateLocal(date);
+        result.push({ date, dateKey, events: eventsByDate[dateKey] || [], isCurrentMonth: false });
+      }
+    }
+
+    return result;
   }, [referenceDate, eventsByDate]);
+
+  const today = new Date();
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
-      <div className="flex items-center justify-between p-4 mb-4">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
         <button
           onClick={onNavigatePrev}
-          className="px-3 py-2 border rounded hover:bg-gray-100"
+          className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <div className="text-center font-semibold text-lg">
-          {format(referenceDate, 'MMM yyyy')}
+        <div className="font-semibold text-lg">
+          {format(referenceDate, 'MMMM yyyy')}
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={onNavigateNext}
-            className="px-3 py-2 border rounded hover:bg-gray-100"
-          >
-            <ChevronRight className="w-4 h-4" />
-          </button>
-          <button
             onClick={onResetToToday}
-            className="px-3 py-2 border rounded hover:bg-gray-100 text-sm"
+            className="px-3 py-1.5 text-sm border rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             Today
+          </button>
+          <button
+            onClick={onNavigateNext}
+            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="p-4">
-        <div className="grid grid-cols-7 gap-2 mb-2 text-xs font-medium text-gray-500">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-            <div key={d} className="text-center w-8">{d}</div>
-          ))}
-        </div>
-
-        {weeks.map(week => (
-          <div key={week.weekNumber} className="grid grid-cols-7 gap-2 mb-2">
-            {week.days.map((day, index) => {
-              if (!day.date) {
-                return <div key={`empty-${week.weekNumber}-${index}`} className="h-32 w-full p-1 border border-transparent" />;
-              }
-
-              const dateKey = format(day.date, 'yyyy-MM-dd');
-              const isToday = isSameDay(day.date, new Date());
-
-              return (
-                <div
-                  key={dateKey}
-                  className={`relative h-32 w-full p-1 border border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                    isToday ? 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-500 dark:ring-blue-400' : ''
-                  }`}
-                  onClick={() => day.date && onDayClick(day.date)}
-                >
-                  <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : ''}`}>
-                    {day.date.getDate()}
-                  </div>
-                  <div className="flex flex-col gap-1 overflow-y-auto max-h-24 pr-1">
-                    {day.events.slice(0, 3).map((event: Event) => (
-                      <CalendarEventChip
-                        key={event.id}
-                        event={event}
-                        onClick={() => onEventClick(event)}
-                        colorClass={getColor(event.city)}
-                        showCity={false}
-                      />
-                    ))}
-                    {day.events.length > 3 && (
-                      <div className="text-xs text-gray-500 text-center">
-                        +{day.events.length - 3} more
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+      {/* Day-of-week headers */}
+      <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-700">
+        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+          <div key={d} className="py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
+            {d}
           </div>
         ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 dark:divide-gray-700">
+        {days.map((day) => {
+          const isToday = isSameDay(day.date, today);
+          return (
+            <div
+              key={day.dateKey}
+              onClick={() => onDayClick(day.date)}
+              className={[
+                'min-h-[5rem] p-2 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40',
+                !day.isCurrentMonth && 'opacity-35',
+                isToday && 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-inset ring-blue-500 dark:ring-blue-400',
+              ].filter(Boolean).join(' ')}
+            >
+              <div className={[
+                'text-sm font-medium leading-none mb-1.5',
+                isToday
+                  ? 'text-blue-600 dark:text-blue-400 font-bold'
+                  : day.isCurrentMonth
+                    ? 'text-gray-900 dark:text-gray-100'
+                    : 'text-gray-400 dark:text-gray-600',
+              ].join(' ')}>
+                {day.date.getDate()}
+              </div>
+              {day.events.length > 0 && (
+                <span className="inline-flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
+                  <span className="sm:hidden">{day.events.length}</span>
+                  <span className="hidden sm:inline">{day.events.length} Event{day.events.length !== 1 ? 's' : ''}</span>
+                </span>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -18,6 +18,8 @@ export function getDimensionValue(item: Event | Run, dim: Dimension): string {
       return isEvent ? ((item as Event).source || 'Unknown') : 'Unknown';
     case 'location':
       return isEvent ? ((item as Event).location || 'Unknown') : 'Unknown';
+    case 'origin':
+      return isEvent ? ((item as Event).origin || 'Unknown') : 'Unknown';
     case 'agent':
       return isEvent ? 'Unknown' : (item as Run).agent;
     case 'month':
@@ -36,6 +38,7 @@ export const dimensionOptions: DimensionOption[] = [
   { value: 'city', label: 'City', description: 'Event city' },
   { value: 'source', label: 'Source', description: 'Event source' },
   { value: 'location', label: 'Location', description: 'Event location' },
+  { value: 'origin', label: 'Origin', description: 'Event origin' },
   { value: 'agent', label: 'Agent', description: 'Run agent' },
   { value: 'month', label: 'Month', description: 'Month of year' },
   { value: 'year', label: 'Year', description: 'Year' },

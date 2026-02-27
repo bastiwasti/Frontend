@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, memo } from 'react';
-import { ExternalLink, MapPin, Building2, Calendar, Clock, Tag, ChevronDown, ChevronUp } from 'lucide-react';
+import { ExternalLink, MapPin, Building2, Calendar, Clock, Tag, Plus, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import type { Event } from '@/types';
 import { formatEventDateTime } from '@/lib/event-utils';
+import { useSession } from 'next-auth/react';
 
 interface EventDetailsModalProps {
   event: Event | null;
@@ -18,40 +19,99 @@ interface EventDetailsModalProps {
 }
 
 function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) {
+  const { data: session } = useSession();
   const { dateRange, timeRange } = formatEventDateTime(event?.start_datetime || null, event?.end_datetime || null);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+  const [isAddingToCalendar, setIsAddingToCalendar] = useState(false);
+  const [addToCalendarSuccess, setAddToCalendarSuccess] = useState(false);
+  const [addToCalendarError, setAddToCalendarError] = useState<string | null>(null);
+
+  const addToGoogleCalendar = async () => {
+    if (!event) return;
+    if (!session?.accessToken) {
+      console.log('[Google Calendar] No access token in session', { hasSession: !!session, sessionKeys: session ? Object.keys(session) : [] });
+      setAddToCalendarError('Please sign in to add events to your calendar');
+      return;
+    }
+
+    if (!event.start_datetime) {
+      setAddToCalendarError('Cannot add event without a start time');
+      return;
+    }
+
+    setIsAddingToCalendar(true);
+    setAddToCalendarError(null);
+    console.log('[Google Calendar] Adding event', { eventName: event.name, hasAccessToken: !!session.accessToken });
+
+    try {
+      const locationParts = [];
+      if (event.location) locationParts.push(event.location);
+      if (event.city) locationParts.push(event.city);
+      const locationString = locationParts.join(', ');
+
+      const descriptionParts = [];
+      if (event.description) descriptionParts.push(event.description);
+      if (event.location) descriptionParts.push(`📍 ${event.location}`);
+      if (event.city) descriptionParts.push(`🏙️ ${event.city}`);
+      if (event.category) descriptionParts.push(`🏷️ ${event.category}`);
+      if (event.source) descriptionParts.push(`🔗 ${event.source}`);
+      const descriptionString = descriptionParts.join('\n\n');
+
+      const eventData = {
+        summary: event.name,
+        description: descriptionString,
+        location: locationString,
+        start: {
+          dateTime: new Date(event.start_datetime).toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+        end: {
+          dateTime: event.end_datetime
+            ? new Date(event.end_datetime).toISOString()
+            : new Date(new Date(event.start_datetime).getTime() + 60 * 60 * 1000).toISOString(),
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      };
+
+      const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      });
+
+      console.log('[Google Calendar] Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[Google Calendar] API error:', errorData);
+        throw new Error(errorData.error?.message || 'Failed to add event to calendar');
+      }
+
+      const responseData = await response.json();
+      console.log('[Google Calendar] Event added successfully:', responseData.id);
+
+      setAddToCalendarSuccess(true);
+      setTimeout(() => setAddToCalendarSuccess(false), 2000);
+    } catch (error) {
+      setAddToCalendarError(error instanceof Error ? error.message : 'Failed to add event to calendar');
+    } finally {
+      setIsAddingToCalendar(false);
+    }
+  };
 
   if (!event) return null;
 
   return (
     <Dialog open={!!event} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={isDescriptionExpanded ? 'max-w-lg' : 'max-w-md'}>
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{event.name}</DialogTitle>
           {event.description && (
-            <div className="space-y-1">
-              <DialogDescription
-                className={isDescriptionExpanded ? '' : 'line-clamp-3'}
-              >
-                {event.description}
-              </DialogDescription>
-              <button
-                onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
-              >
-                {isDescriptionExpanded ? (
-                  <>
-                    Show less
-                    <ChevronUp className="h-3 w-3" />
-                  </>
-                ) : (
-                  <>
-                    Show more
-                    <ChevronDown className="h-3 w-3" />
-                  </>
-                )}
-              </button>
-            </div>
+            <DialogDescription>
+              {event.description}
+            </DialogDescription>
           )}
         </DialogHeader>
 
@@ -120,6 +180,45 @@ function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) 
             <ExternalLink className="h-4 w-4" />
           </a>
         )}
+
+        <div className="mt-4 flex flex-col gap-2">
+          {addToCalendarError && (
+            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              <span>{addToCalendarError}</span>
+            </div>
+          )}
+
+          {addToCalendarSuccess && (
+            <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-2 rounded-lg">
+              <CheckCircle className="h-4 w-4 shrink-0" />
+              <span>Added to Google Calendar!</span>
+            </div>
+          )}
+
+          <button
+            onClick={addToGoogleCalendar}
+            disabled={isAddingToCalendar}
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors text-sm font-medium"
+          >
+            {isAddingToCalendar ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Adding...</span>
+              </>
+            ) : addToCalendarSuccess ? (
+              <>
+                <CheckCircle className="h-4 w-4" />
+                <span>Add to Google Calendar</span>
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4" />
+                <span>Add to Google Calendar</span>
+              </>
+            )}
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

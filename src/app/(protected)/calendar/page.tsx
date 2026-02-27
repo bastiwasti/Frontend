@@ -19,10 +19,16 @@ export default function CalendarPage() {
   const { filters, setFilters, filteredEvents, uniqueValues, clearAllFilters, isActive } = useEventFilters(events);
   const [expandedEventIds, setExpandedEventIds] = useState<Set<number>>(new Set());
   const [runIdFilter, setRunIdFilter] = useState<number | null>(null);
+  const [originFilter, setOriginFilter] = useState<string>('');
 
-  const displayedEvents = runIdFilter !== null
-    ? filteredEvents.filter(e => e.run_id === runIdFilter)
-    : filteredEvents;
+  console.log('Debug - uniqueValues.origins:', uniqueValues.origins);
+  console.log('Debug - uniqueValues:', uniqueValues);
+
+  const displayedEvents = filteredEvents.filter(event => {
+    if (runIdFilter !== null && event.run_id !== runIdFilter) return false;
+    if (originFilter && event.origin !== originFilter) return false;
+    return true;
+  });
 
   const toggleExpand = (eventId: number) => {
     setExpandedEventIds(prev => {
@@ -35,9 +41,10 @@ export default function CalendarPage() {
   const handleClearAll = () => {
     clearAllFilters();
     setRunIdFilter(null);
+    setOriginFilter('');
   };
 
-  const hasAnyActiveFilters = isActive || runIdFilter !== null;
+  const hasAnyActiveFilters = isActive || runIdFilter !== null || originFilter !== '';
 
   const runIdSelect = (
     <div className="space-y-2">
@@ -54,6 +61,29 @@ export default function CalendarPage() {
           {runs.map(run => (
             <SelectItem key={run.id} value={run.id.toString()}>
               Run {run.id} - {run.agent}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  const originSelect = (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">Origin</label>
+      <Select
+        value={originFilter || 'all'}
+        onValueChange={(v) => setOriginFilter(v === 'all' ? '' : v)}
+        disabled={isLoading}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="All origins" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All origins</SelectItem>
+          {(uniqueValues.origins || []).map(origin => (
+            <SelectItem key={origin} value={origin}>
+              {origin}
             </SelectItem>
           ))}
         </SelectContent>
@@ -83,7 +113,12 @@ export default function CalendarPage() {
           onClearFilters={handleClearAll}
           isLoading={isLoading}
           showDateRangePicker
-          extraFilters={runIdSelect}
+          extraFilters={
+            <>
+              {runIdSelect}
+              {originSelect}
+            </>
+          }
         />
 
         {isLoading ? (

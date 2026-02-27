@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { X, Filter, CalendarIcon } from 'lucide-react';
@@ -57,67 +57,50 @@ export function EventFiltersPanel({
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Location</label>
-          <Select
-            value={filters.location || 'all'}
-            onValueChange={(v) => update({ location: v === 'all' ? '' : v })}
+          <MultiSelect
+            label="Location"
+            options={uniqueLocations}
+            selected={filters.location}
+            onChange={(v) => update({ location: v })}
             disabled={isLoading}
-          >
-            <SelectTrigger><SelectValue placeholder="All locations" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All locations</SelectItem>
-              {uniqueLocations.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          />
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-medium">City</label>
-          <Select
-            value={filters.city || 'all'}
-            onValueChange={(v) => update({ city: v === 'all' ? '' : v })}
+          <MultiSelect
+            label="City"
+            options={uniqueCities}
+            selected={filters.city}
+            onChange={(v) => update({ city: v })}
             disabled={isLoading}
-          >
-            <SelectTrigger><SelectValue placeholder="All cities" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All cities</SelectItem>
-              {uniqueCities.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          />
         </div>
 
         <div className="space-y-2">
           <label className="text-sm font-medium">Category</label>
-          <Select
-            value={filters.category || 'all'}
-            onValueChange={(v) => update({ category: v === 'all' ? '' : v })}
+          <MultiSelect
+            label="Category"
+            options={uniqueCategories}
+            selected={filters.category}
+            onChange={(v) => update({ category: v })}
             disabled={isLoading}
-          >
-            <SelectTrigger><SelectValue placeholder="All categories" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All categories</SelectItem>
-              {uniqueCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          />
         </div>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Source</label>
-          <Select
-            value={filters.source || 'all'}
-            onValueChange={(v) => update({ source: v === 'all' ? '' : v })}
-            disabled={isLoading}
-          >
-            <SelectTrigger><SelectValue placeholder="All sources" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All sources</SelectItem>
-              {uniqueSources.map(s => (
-                <SelectItem key={s} value={s}>
-                  {s.length > 30 ? `${s.substring(0, 30)}...` : s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {uniqueSources.length > 0 && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Source</label>
+            <MultiSelect
+              label="Source"
+              options={uniqueSources}
+              selected={filters.source}
+              onChange={(v) => update({ source: v })}
+              disabled={isLoading}
+              maxDisplayed={1}
+            />
+          </div>
+        )}
 
         {showDateRangePicker && (
           <div className="space-y-2">
