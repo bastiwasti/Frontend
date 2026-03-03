@@ -74,45 +74,45 @@ export function CalendarMonthGrid({
   const today = new Date();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+    <div className="bg-card rounded-lg border shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 py-3 border-b">
         <button
           onClick={onNavigatePrev}
-          className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+          className="p-2 rounded hover:bg-accent transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <div className="font-semibold text-lg">
+        <div className="font-semibold text-lg text-foreground">
           {format(referenceDate, 'MMMM yyyy')}
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={onResetToToday}
-            className="px-3 py-1.5 text-sm border rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="px-3 py-1.5 text-sm border rounded hover:bg-accent transition-colors"
           >
             Today
           </button>
           <button
             onClick={onNavigateNext}
-            className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded hover:bg-accent transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
-
+      
       {/* Day-of-week headers */}
-      <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-700">
+      <div className="grid grid-cols-7 border-b">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-          <div key={d} className="py-2 text-center text-xs font-medium text-gray-500 dark:text-gray-400">
+          <div key={d} className="py-2 text-center text-xs font-medium text-muted-foreground">
             {d}
           </div>
         ))}
       </div>
-
+      
       {/* Day grid */}
-      <div className="grid grid-cols-7 divide-x divide-y divide-gray-100 dark:divide-gray-700">
+      <div className="grid grid-cols-7 divide-x divide-y divide-border">
         {days.map((day) => {
           const isToday = isSameDay(day.date, today);
           return (
@@ -122,27 +122,27 @@ export function CalendarMonthGrid({
               className={[
                 'min-h-[5rem] p-2 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md',
                 day.isCurrentMonth 
-                  ? 'hover:bg-muted' 
-                  : 'opacity-35',
-                isToday && 'bg-primary/10 ring-2 ring-inset ring-primary',
+                  ? 'hover:bg-accent' 
+                  : 'opacity-40',
+                isToday && 'bg-primary/20 ring-2 ring-inset ring-primary',
               ].filter(Boolean).join(' ')}
             >
-              <div className={[
-                'text-sm font-medium leading-none mb-1.5',
-                isToday
-                  ? 'text-blue-600 dark:text-blue-400 font-bold'
-                  : day.isCurrentMonth
-                    ? 'text-gray-900 dark:text-gray-100'
-                    : 'text-gray-400 dark:text-gray-600',
-              ].join(' ')}>
-                {day.date.getDate()}
-              </div>
-              {day.events.length > 0 && (
-                <span className="inline-flex items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/40 px-1.5 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300">
-                  <span className="sm:hidden">{day.events.length}</span>
-                  <span className="hidden sm:inline">{day.events.length} Event{day.events.length !== 1 ? 's' : ''}</span>
-                </span>
-              )}
+               <div className={[
+                 'text-sm font-medium leading-none mb-1.5',
+                 isToday
+                   ? 'text-primary font-bold'
+                   : day.isCurrentMonth
+                     ? 'text-foreground'
+                     : 'text-muted-foreground',
+               ].join(' ')}>
+                 {day.date.getDate()}
+               </div>
+               {day.events.length > 0 && (
+                 <span className="inline-flex items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
+                   <span className="sm:hidden">{day.events.length}</span>
+                   <span className="hidden sm:inline">{day.events.length} Event{day.events.length !== 1 ? 's' : ''}</span>
+                 </span>
+               )}
             </div>
           );
         })}

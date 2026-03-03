@@ -108,12 +108,12 @@ export function DayEventsModal({ date, events, onClose, onEventClick, getDistanc
         <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
           {/* Highlights Section */}
           {highlightEvents.length > 0 && (
-            <div className="rounded-lg overflow-hidden border-2 border-yellow-300 dark:border-yellow-600 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20">
-              <div className="px-4 py-3 bg-yellow-100 dark:bg-yellow-900/40 border-b border-yellow-200 dark:border-yellow-700">
+            <div className="rounded-lg overflow-hidden border-2 border-secondary dark:border-secondary bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-secondary/30 dark:to-amber-900/20">
+              <div className="px-4 py-3 bg-secondary/40 dark:bg-secondary/20 border-b border-secondary/50 dark:border-secondary/30">
                 <div className="flex items-center gap-3">
                   <span className="text-lg">⭐</span>
-                  <span className="font-semibold text-yellow-900 dark:text-yellow-100">Highlights</span>
-                  <span className="text-xs font-medium text-yellow-700 dark:text-yellow-300">
+                  <span className="font-semibold text-foreground text-secondary-foreground">Highlights</span>
+                  <span className="text-xs font-medium text-secondary-foreground text-secondary-foreground">
                     {highlightEvents.length} event{highlightEvents.length !== 1 ? 's' : ''}
                   </span>
                 </div>
@@ -124,40 +124,40 @@ export function DayEventsModal({ date, events, onClose, onEventClick, getDistanc
                   return (
                     <div
                       key={event.id}
-                      className="px-4 py-3 hover:bg-yellow-50/50 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
+                      className="px-4 py-3 hover:bg-secondary/80/50 dark:hover:bg-yellow-900/30 transition-colors cursor-pointer"
                       onClick={() => onEventClick(event)}
                     >
                       <div className="mb-1 flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="font-medium text-foreground dark:text-foreground">
                           {event.name}
                         </span>
                         {event.user_rating ? (
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">You:</span>
+                            <span className="text-xs text-primary dark:text-primary font-medium">You:</span>
                             <StarRating rating={event.user_rating} size="sm" />
                           </div>
                         ) : event.avg_rating !== null && event.rating_count > 0 ? (
                           <div className="flex items-center gap-1">
                             <StarRating rating={event.avg_rating} size="sm" />
-                            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{event.avg_rating}</span>
-                            <span className="text-xs text-gray-400">({event.rating_count})</span>
+                            <span className="text-xs font-medium text-foreground dark:text-muted-foreground">{event.avg_rating}</span>
+                            <span className="text-xs text-muted-foreground">({event.rating_count})</span>
                           </div>
                         ) : null}
                       </div>
                       {event.description && (
-                        <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-1">
+                        <p className="text-muted-foreground dark:text-muted-foreground text-sm line-clamp-2 mb-1">
                           {event.description}
                         </p>
                       )}
-                      <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground dark:text-muted-foreground">
                         {event.location && (
                           <span>
-                            <span className="font-medium text-gray-600 dark:text-gray-300">Location:</span> {event.location}
+                            <span className="font-medium text-foreground dark:text-foreground">Location:</span> {event.location}
                           </span>
                         )}
                         {event.city && (
                           <span>
-                            <span className="font-medium text-gray-600 dark:text-gray-300">City:</span> {event.city}
+                            <span className="font-medium text-foreground dark:text-foreground">City:</span> {event.city}
                             {distKm !== null && (
                               <span className="ml-1 opacity-60">({Math.round(distKm)} km)</span>
                             )}
@@ -165,7 +165,7 @@ export function DayEventsModal({ date, events, onClose, onEventClick, getDistanc
                         )}
                         {event.start_datetime && (
                           <span>
-                            <span className="font-medium text-gray-600 dark:text-gray-300">Time:</span>{' '}
+                            <span className="font-medium text-foreground dark:text-foreground">Time:</span>{' '}
                             {new Date(event.start_datetime).toLocaleTimeString('en-US', {
                               hour: 'numeric',
                               minute: '2-digit',
@@ -196,7 +196,7 @@ export function DayEventsModal({ date, events, onClose, onEventClick, getDistanc
             });
 
             return (
-              <div key={catName} className="rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700">
+              <div key={catName} className="rounded-lg overflow-hidden border border dark:border-secondary">
                 {/* Category header */}
                 <button
                   className={cn(
@@ -227,40 +227,40 @@ export function DayEventsModal({ date, events, onClose, onEventClick, getDistanc
                       return (
                         <div
                           key={event.id}
-                          className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                          className="px-4 py-3 hover:bg-accent dark:hover:bg-secondary/20 transition-colors cursor-pointer"
                           onClick={() => onEventClick(event)}
                         >
                           <div className="mb-1 flex items-center gap-2">
-                            <span className="font-medium text-gray-900 dark:text-white">
+                            <span className="font-medium text-foreground dark:text-foreground">
                               {event.name}
                             </span>
                             {event.user_rating ? (
                               <div className="flex items-center gap-1">
-                                <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">You:</span>
+                                <span className="text-xs text-primary dark:text-primary font-medium">You:</span>
                                 <StarRating rating={event.user_rating} size="sm" />
                               </div>
                             ) : event.avg_rating !== null && event.rating_count > 0 ? (
                               <div className="flex items-center gap-1">
                                 <StarRating rating={event.avg_rating} size="sm" />
-                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{event.avg_rating}</span>
-                                <span className="text-xs text-gray-400">({event.rating_count})</span>
+                                <span className="text-xs font-medium text-foreground dark:text-muted-foreground">{event.avg_rating}</span>
+                                <span className="text-xs text-muted-foreground">({event.rating_count})</span>
                               </div>
                             ) : null}
                           </div>
                           {event.description && (
-                            <p className="text-gray-500 dark:text-gray-400 text-sm line-clamp-2 mb-1">
+                            <p className="text-muted-foreground dark:text-muted-foreground text-sm line-clamp-2 mb-1">
                               {event.description}
                             </p>
                           )}
-                          <div className="flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+                          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground dark:text-muted-foreground">
                             {event.location && (
                               <span>
-                                <span className="font-medium text-gray-600 dark:text-gray-300">Location:</span> {event.location}
+                                <span className="font-medium text-foreground dark:text-foreground">Location:</span> {event.location}
                               </span>
                             )}
                             {event.city && (
                               <span>
-                                <span className="font-medium text-gray-600 dark:text-gray-300">City:</span> {event.city}
+                                <span className="font-medium text-foreground dark:text-foreground">City:</span> {event.city}
                                 {distKm !== null && (
                                   <span className="ml-1 opacity-60">({Math.round(distKm)} km)</span>
                                 )}
@@ -268,7 +268,7 @@ export function DayEventsModal({ date, events, onClose, onEventClick, getDistanc
                             )}
                             {event.start_datetime && (
                               <span>
-                                <span className="font-medium text-gray-600 dark:text-gray-300">Time:</span>{' '}
+                                <span className="font-medium text-foreground dark:text-foreground">Time:</span>{' '}
                                 {new Date(event.start_datetime).toLocaleTimeString('en-US', {
                                   hour: 'numeric',
                                   minute: '2-digit',
