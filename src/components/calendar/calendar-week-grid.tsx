@@ -79,7 +79,7 @@ export function CalendarMonthGrid({
       <div className="flex items-center justify-between px-4 py-3 border-b">
         <button
           onClick={onNavigatePrev}
-          className="p-2 rounded hover:bg-accent transition-colors"
+          className="p-2 rounded border hover:bg-accent transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -95,7 +95,7 @@ export function CalendarMonthGrid({
           </button>
           <button
             onClick={onNavigateNext}
-            className="p-2 rounded hover:bg-accent transition-colors"
+            className="p-2 rounded border hover:bg-accent transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
