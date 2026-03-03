@@ -11,15 +11,15 @@ export default function StatusPage() {
       <div className="max-w-6xl mx-auto">
         <h1 className="text-4xl font-bold tracking-tight text-foreground mb-8">Run Status</h1>
         {runs.length === 0 ? (
-          <div className="bg-card rounded-xl border border-white/10 p-12 text-center">
+          <div className="bg-card rounded-xl border p-12 text-center">
             <XCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <p className="text-lg text-muted-foreground">No runs found</p>
           </div>
         ) : (
-          <div className="bg-card/85 rounded-xl border border-white/10 shadow-xl overflow-hidden">
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/10 bg-card/60">
+                <tr className="border-b bg-muted/50">
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Run ID</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cities</th>
@@ -29,9 +29,9 @@ export default function StatusPage() {
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Created</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/10">
+              <tbody className="divide-y divide-border">
                 {runs.map((run) => (
-                  <tr key={run.id} className="hover:bg-card/95 transition-colors">
+                  <tr key={run.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-semibold text-foreground">#{run.id}</span>
                     </td>

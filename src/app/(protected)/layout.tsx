@@ -13,7 +13,7 @@ export default function ProtectedLayout({
   return (
     <div className="min-h-screen relative">
       <PageBackground />
-      <header className="border-b border-white/10 bg-background/95 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b bg-card shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2 text-2xl font-bold text-foreground">
             <MapPin className="h-6 w-6 text-primary" />

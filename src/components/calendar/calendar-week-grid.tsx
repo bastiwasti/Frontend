@@ -122,9 +122,9 @@ export function CalendarMonthGrid({
               className={[
                 'min-h-[5rem] p-2 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md',
                 day.isCurrentMonth 
-                  ? 'hover:bg-card/80' 
+                  ? 'hover:bg-muted' 
                   : 'opacity-35',
-                isToday && 'bg-primary/20 ring-2 ring-inset ring-primary',
+                isToday && 'bg-primary/10 ring-2 ring-inset ring-primary',
               ].filter(Boolean).join(' ')}
             >
               <div className={[

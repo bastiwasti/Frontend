@@ -103,7 +103,7 @@ export default function Home() {
         <div className="mb-8 space-y-4">
           <HometownImageBox hometown={homeCity} />
           
-          <div className="bg-card/85 border border-white/10 rounded-2xl p-4 shadow-xl">
+          <div className="bg-card border p-4 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary" />
@@ -115,7 +115,7 @@ export default function Home() {
                   onValueChange={setHomeCity}
                   disabled={isGeocoding}
                 >
-                  <SelectTrigger className="h-8 w-48 text-sm bg-background border border-white/10 focus:ring-2 ring-primary">
+                  <SelectTrigger className="h-8 w-48 text-sm bg-background border focus:ring-2 ring-primary">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -132,7 +132,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+            <div className="flex items-center gap-3 mt-4 pt-4 border-t">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
@@ -140,7 +140,7 @@ export default function Home() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search events..."
-                  className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-white/10 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 {searchQuery && (
                   <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -157,7 +157,7 @@ export default function Home() {
                     'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border',
                     distanceFilter === key
                       ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'bg-background text-muted-foreground border-white/10 hover:bg-background/80 hover:border-white/20',
+                      : 'bg-background text-muted-foreground hover:bg-accent',
                     isGeocoding && 'opacity-50 cursor-not-allowed'
                   )}
                 >
@@ -180,7 +180,7 @@ export default function Home() {
         {isLoading ? (
           <LoadingSpinner message="Loading events..." />
         ) : displayedEvents.length === 0 ? (
-          <div className="bg-card/85 border border-white/10 rounded-xl p-12">
+          <div className="bg-card rounded-xl border p-12">
             <EmptyState />
           </div>
         ) : (
