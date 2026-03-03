@@ -23,12 +23,15 @@ export default function Navigation() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+            className={`relative flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 ${
               isActive
-                ? 'bg-primary text-primary-foreground shadow-md'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:scale-105'
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
+            {isActive && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-full" />
+            )}
             <Icon className="h-4 w-4" />
             <span className="hidden lg:inline">{item.label}</span>
           </Link>

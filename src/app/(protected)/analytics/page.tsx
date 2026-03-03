@@ -86,7 +86,7 @@ export default function AnalyticsPage() {
     return (
       <div className="min-h-screen py-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-5xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
           <LoadingSpinner message="Loading analytics..." />
         </div>
       </div>
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
     return (
       <div className="min-h-screen py-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-5xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
+          <h1 className="text-4xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
           <div className="text-center py-12">
             <p className="text-destructive mb-4 font-medium">Error: {chartError}</p>
             <button
@@ -113,9 +113,9 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-6 px-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-5xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
 
         <KpiCards events={filteredEvents} />
 

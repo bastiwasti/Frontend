@@ -21,11 +21,11 @@ export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
         fill
         priority
         className="object-cover"
-        quality={100}
+        quality={95}
         sizes="100vw"
         unoptimized
       />
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/10" />
     </div>
   );
 }

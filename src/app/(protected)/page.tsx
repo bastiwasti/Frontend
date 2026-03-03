@@ -97,11 +97,11 @@ export default function Home() {
   const hasActiveFilters = searchQuery !== '' || distanceFilter !== null;
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-6 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-5xl font-bold tracking-tight text-foreground">
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
               {displayedEvents.length} Events
             </h1>
             <HometownSelector

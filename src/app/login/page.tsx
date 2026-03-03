@@ -1,5 +1,6 @@
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
 import { PageBackground } from "@/components/layout/page-background"
+import { MapPin } from 'lucide-react'
 
 export default function LoginPage() {
   return (
@@ -7,10 +8,13 @@ export default function LoginPage() {
       <PageBackground />
       <div className="relative z-10 min-h-screen flex items-center justify-center">
         <div className="max-w-md w-full mx-4">
-          <div className="bg-card/90 backdrop-blur-lg rounded-xl border shadow-lg p-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2 text-center">
-              Events Gallery
-            </h1>
+          <div className="bg-card/85 rounded-xl border border-white/10 shadow-xl p-8">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <MapPin className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold text-foreground">
+                Eventig
+              </h1>
+            </div>
             <p className="text-muted-foreground text-center mb-8">
               Sign in to access events gallery
             </p>
