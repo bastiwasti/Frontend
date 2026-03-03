@@ -120,9 +120,11 @@ export function CalendarMonthGrid({
               key={day.dateKey}
               onClick={() => onDayClick(day.date)}
               className={[
-                'min-h-[5rem] p-2 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/40',
-                !day.isCurrentMonth && 'opacity-35',
-                isToday && 'bg-blue-50 dark:bg-blue-900/20 ring-2 ring-inset ring-blue-500 dark:ring-blue-400',
+                'min-h-[5rem] p-2 cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-md',
+                day.isCurrentMonth 
+                  ? 'hover:bg-muted/30' 
+                  : 'opacity-35',
+                isToday && 'bg-primary/10 ring-2 ring-inset ring-primary dark:ring-primary',
               ].filter(Boolean).join(' ')}
             >
               <div className={[

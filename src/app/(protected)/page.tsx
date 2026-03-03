@@ -8,10 +8,10 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmptyState } from '@/components/ui/empty-state';
 import { EventDetailsModal } from '@/components/calendar/event-details-modal';
 import { DayEventsModal } from '@/components/calendar/day-events-modal';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDateLocal } from '@/lib/event-utils';
 import { cn } from '@/lib/utils';
 import { Footprints, Bike, Car, Search, X } from 'lucide-react';
+import { HometownSelector } from '@/components/layout/hometown-selector';
 import type { Event } from '@/types';
 
 type DistanceFilter = 'walk' | 'bike' | 'car' | null;
@@ -97,25 +97,19 @@ export default function Home() {
   const hasActiveFilters = searchQuery !== '' || distanceFilter !== null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">{displayedEvents.length} Events</h1>
-          <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
-            <span>Home city:</span>
-            <Select value={homeCity} onValueChange={setHomeCity}>
-              <SelectTrigger className="h-7 w-52 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {homeCityOptions.map(city => (
-                  <SelectItem key={city} value={city}>{city}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {isGeocoding && (
-              <span className="text-xs text-gray-400 animate-pulse">Geocoding…</span>
-            )}
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-5xl font-bold tracking-tight text-foreground">
+              {displayedEvents.length} Events
+            </h1>
+            <HometownSelector
+              hometown={homeCity}
+              onHometownChange={setHomeCity}
+              availableCities={homeCityOptions}
+              isGeocoding={isGeocoding}
+            />
           </div>
           <div className="flex items-center gap-3 mt-3">
             <div className="relative flex-1 max-w-md">

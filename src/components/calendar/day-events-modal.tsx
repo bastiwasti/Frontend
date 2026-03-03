@@ -22,17 +22,16 @@ interface DayEventsModalProps {
   homeCity: string;
 }
 
-export function DayEventsModal({ date, events, onClose, onEventClick, getDistanceKm, homeCity }: DayEventsModalProps) {
+export function DayEventsModal({ date, events, onClose, onEventClick, getDistanceKm }: DayEventsModalProps) {
   const [openCategories, setOpenCategories] = useState<Set<string>>(new Set());
-  const prevDateKey = useRef<string | null>(null);
 
-  // Reset accordion only when a genuinely different day is opened
+  // Reset accordion when the date changes
   useEffect(() => {
-    const key = date ? date.toDateString() : null;
-    if (key !== prevDateKey.current) {
-      prevDateKey.current = key;
-      if (key) setOpenCategories(new Set());
-    }
+    // Defer state update to avoid cascading renders
+    const timeoutId = setTimeout(() => {
+      setOpenCategories(new Set());
+    }, 0);
+    return () => clearTimeout(timeoutId);
   }, [date]);
 
   const categories = useMemo(() => {

@@ -1,46 +1,70 @@
 'use client';
 
 import { useRuns } from '@/hooks/use-runs';
+import { Clock, CheckCircle, XCircle } from 'lucide-react';
 
 export default function StatusPage() {
   const { runs } = useRuns();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Run Status</h1>
+    <div className="min-h-screen py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-5xl font-bold tracking-tight text-foreground mb-8">Run Status</h1>
         {runs.length === 0 ? (
-          <p className="text-center text-gray-500">No runs found</p>
+          <div className="bg-card rounded-xl border p-12 text-center">
+            <XCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <p className="text-lg text-muted-foreground">No runs found</p>
+          </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
             <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Run ID</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Agent</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cities</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Events Found</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valid Events</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Summary ID</th>
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Run ID</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cities</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Duration</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Events</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Valid</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Created</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {runs.map((run) => (
-                  <tr key={run.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{run.id}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.agent}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.cities || 'N/A'}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(run.created_at).toLocaleString()}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.duration ? `${run.duration.toFixed(2)}s` : 'N/A'}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.events_found ?? 0}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.valid_events ?? 0}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.start_time ? new Date(run.start_time).toLocaleString() : 'N/A'}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.end_time ? new Date(run.end_time).toLocaleString() : 'N/A'}</td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600">{run.raw_summary_id ?? 'N/A'}</td>
+                  <tr key={run.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-semibold text-foreground">#{run.id}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground">{run.agent}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground">{run.cities || 'N/A'}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className="text-sm font-medium text-foreground">
+                          {run.duration ? `${run.duration.toFixed(2)}s` : 'N/A'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground">{run.events_found ?? 0}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-1">
+                        <CheckCircle className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                        <span className="text-sm font-semibold text-green-700 dark:text-green-400">
+                          {run.valid_events ?? 0}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-muted-foreground">
+                        {new Date(run.created_at).toLocaleDateString()}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

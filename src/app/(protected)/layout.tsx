@@ -1,6 +1,8 @@
 'use client';
 
 import { UserMenu } from "@/components/auth/user-menu"
+import { PageBackground } from "@/components/layout/page-background"
+import Navigation from "@/components/Navigation"
 
 export default function ProtectedLayout({
   children,
@@ -8,13 +10,24 @@ export default function ProtectedLayout({
   children: React.ReactNode
 }) {
   return (
-    <div>
-      <header className="border-b bg-white sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-end">
-          <UserMenu />
+    <div className="min-h-screen relative">
+      <PageBackground />
+      <header className="border-b bg-background/80 backdrop-blur-lg sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              📍 Events Gallery
+            </span>
+          </div>
+          <div className="flex items-center gap-4">
+            <Navigation />
+            <UserMenu />
+          </div>
         </div>
       </header>
-      {children}
+      <main className="relative z-10">
+        {children}
+      </main>
     </div>
   )
 }

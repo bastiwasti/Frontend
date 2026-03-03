@@ -41,10 +41,10 @@ export default function LocationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-5xl font-bold tracking-tight text-foreground mb-2">
             {filteredLocations.length} Locations
           </h1>
           <div className="flex flex-wrap gap-2 mt-3">

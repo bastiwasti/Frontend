@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { isValid } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -26,21 +26,34 @@ export default function AnalyticsPage() {
   const [chartType, setChartType] = useState<ChartType>('bar');
 
   useEffect(() => {
+    let errorTimeout: NodeJS.Timeout;
     const handleError = (event: ErrorEvent) => {
       console.error('Global error:', event.error);
-      setChartError(event.error?.message || 'Unknown error');
+      // Defer state update to avoid cascading renders
+      errorTimeout = setTimeout(() => {
+        setChartError(event.error?.message || 'Unknown error');
+      }, 0);
     };
     window.addEventListener('error', handleError);
-    return () => window.removeEventListener('error', handleError);
+    return () => {
+      window.removeEventListener('error', handleError);
+      clearTimeout(errorTimeout);
+    };
   }, []);
 
   useEffect(() => {
-    if (groupBy === dimension) setGroupBy(null);
+    if (groupBy === dimension) {
+      // Defer state update to avoid cascading renders
+      const timeoutId = setTimeout(() => {
+        setGroupBy(null);
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
   }, [dimension, groupBy]);
 
-  const handleGroupByChange = (value: string) => {
+  const handleGroupByChange = useCallback((value: string) => {
     setGroupBy(value === '__none__' ? null : (value as Dimension));
-  };
+  }, []);
 
   const filteredEvents = useMemo(() => {
     let filtered = dataSource === 'all' ? events : events.filter(e => e.run_id === selectedRunId);
@@ -71,9 +84,9 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="min-h-screen py-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Analytics</h1>
+          <h1 className="text-5xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
           <LoadingSpinner message="Loading analytics..." />
         </div>
       </div>
@@ -82,14 +95,14 @@ export default function AnalyticsPage() {
 
   if (chartError) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="min-h-screen py-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-900 mb-8">Analytics</h1>
+          <h1 className="text-5xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
           <div className="text-center py-12">
-            <p className="text-red-500 mb-4">Error: {chartError}</p>
+            <p className="text-destructive mb-4 font-medium">Error: {chartError}</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
             >
               Reload Page
             </button>
@@ -100,9 +113,9 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">Analytics</h1>
+        <h1 className="text-5xl font-bold tracking-tight text-foreground mb-8">Analytics</h1>
 
         <KpiCards events={filteredEvents} />
 

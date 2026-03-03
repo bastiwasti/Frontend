@@ -2,56 +2,38 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Calendar, MapPin, BarChart3, Activity } from 'lucide-react';
+
+const navItems = [
+  { href: '/', label: 'Calendar', icon: Calendar },
+  { href: '/locations', label: 'Locations', icon: MapPin },
+  { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/status', label: 'Status', icon: Activity },
+];
 
 export default function Navigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="bg-white shadow-md">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="flex space-x-8">
+    <nav className="hidden md:flex items-center gap-1">
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = pathname === item.href;
+        return (
           <Link
-            href="/"
-            className={`py-4 px-2 border-b-2 font-medium ${
-              pathname === '/' 
-                ? 'border-blue-500 text-blue-600' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            key={item.href}
+            href={item.href}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              isActive
+                ? 'bg-primary text-primary-foreground shadow-md'
+                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:scale-105'
             }`}
           >
-            Calendar
+            <Icon className="h-4 w-4" />
+            <span className="hidden lg:inline">{item.label}</span>
           </Link>
-          <Link
-            href="/locations"
-            className={`py-4 px-2 border-b-2 font-medium ${
-              pathname === '/locations'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Locations
-          </Link>
-          <Link
-            href="/analytics"
-            className={`py-4 px-2 border-b-2 font-medium ${
-              pathname === '/analytics'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Analytics
-          </Link>
-          <Link
-            href="/status"
-            className={`py-4 px-2 border-b-2 font-medium ${
-              pathname === '/status'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            Status
-          </Link>
-        </div>
-      </div>
+        );
+      })}
     </nav>
   );
 }
