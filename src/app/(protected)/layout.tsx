@@ -1,7 +1,7 @@
 'use client';
 
 import { UserMenu } from "@/components/auth/user-menu"
-import { PageBackground } from "@/components/layout/page-background"
+import { PageBackground, HometownImageBox } from "@/components/layout/page-background"
 import Navigation from "@/components/Navigation"
 import { MapPin } from 'lucide-react'
 
@@ -15,11 +15,9 @@ export default function ProtectedLayout({
       <PageBackground />
       <header className="border-b border-white/10 bg-background/95 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 text-2xl font-bold text-foreground">
-              <MapPin className="h-6 w-6 text-primary" />
-              <span>Eventig</span>
-            </div>
+          <div className="flex items-center gap-2 text-2xl font-bold text-foreground">
+            <MapPin className="h-6 w-6 text-primary" />
+            <span>Eventig</span>
           </div>
           <div className="flex items-center gap-4">
             <Navigation />

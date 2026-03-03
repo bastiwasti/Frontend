@@ -1,31 +1,26 @@
 'use client';
 
-import Image from 'next/image';
-
 interface PageBackgroundProps {
-  hometown?: string;
+  children?: React.ReactNode;
 }
 
-const CITY_IMAGES: Record<string, string> = {
-  monheim: '/images/monheim-innenstadt.jpg',
-  default: '/images/monheim-innenstadt.jpg',
-};
-
-export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
-  const imageUrl = CITY_IMAGES[hometown] || CITY_IMAGES.default;  
+export function PageBackground({ children }: PageBackgroundProps) {
   return (
-    <div className="fixed inset-0 -z-10 h-screen w-screen overflow-hidden bg-black">
-      <Image
-        src={imageUrl}
-        alt={`${hometown} cityscape`}
-        fill
-        priority
-        className="object-cover"
-        quality={95}
-        sizes="100vw"
-        unoptimized
+    <div className="fixed inset-0 -z-10 h-screen w-screen overflow-hidden bg-gradient-to-br from-background via-background to-background/80">
+      {children}
+    </div>
+  );
+}
+
+export function HometownImageBox({ hometown = 'monheim' }: { hometown?: string }) {
+  return (
+    <div className="relative h-48 w-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+      <img
+        src="/images/monheim-innenstadt.jpg"
+        alt="Monheim cityscape"
+        className="w-full h-full object-cover"
       />
-      <div className="absolute inset-0 bg-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
     </div>
   );
 }

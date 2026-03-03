@@ -10,8 +10,9 @@ import { EventDetailsModal } from '@/components/calendar/event-details-modal';
 import { DayEventsModal } from '@/components/calendar/day-events-modal';
 import { formatDateLocal } from '@/lib/event-utils';
 import { cn } from '@/lib/utils';
-import { Footprints, Bike, Car, Search, X } from 'lucide-react';
-import { HometownSelector } from '@/components/layout/hometown-selector';
+import { Footprints, Bike, Car, Search, X, MapPin } from 'lucide-react';
+import { HometownImageBox } from '@/components/layout/page-background';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Event } from '@/types';
 
 type DistanceFilter = 'walk' | 'bike' | 'car' | null;
@@ -99,66 +100,87 @@ export default function Home() {
   return (
     <div className="min-h-screen py-6 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">
-              {displayedEvents.length} Events
-            </h1>
-            <HometownSelector
-              hometown={homeCity}
-              onHometownChange={setHomeCity}
-              availableCities={homeCityOptions}
-              isGeocoding={isGeocoding}
-            />
-          </div>
-          <div className="flex items-center gap-3 mt-3">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search events..."
-                className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                  <X className="h-4 w-4" />
+        <div className="mb-8 space-y-4">
+          <HometownImageBox hometown={homeCity} />
+          
+          <div className="bg-card/85 border border-white/10 rounded-2xl p-4 shadow-xl">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-foreground">Home:</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Select 
+                  value={homeCity} 
+                  onValueChange={setHomeCity}
+                  disabled={isGeocoding}
+                >
+                  <SelectTrigger className="h-8 w-48 text-sm bg-background border border-white/10 focus:ring-2 ring-primary">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {homeCityOptions.map(city => (
+                      <SelectItem key={city} value={city} className="capitalize">
+                        {city.replace(/_/g, ' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {isGeocoding && (
+                  <span className="text-xs text-muted-foreground animate-pulse">Loading...</span>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/10">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search events..."
+                  className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-white/10 bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              {distanceOptions.map(({ key, icon: Icon, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setDistanceFilter(prev => prev === key ? null : key)}
+                  disabled={isGeocoding}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border',
+                    distanceFilter === key
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : 'bg-background text-muted-foreground border-white/10 hover:bg-background/80 hover:border-white/20',
+                    isGeocoding && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  {label}
+                </button>
+              ))}
+              {hasActiveFilters && (
+                <button
+                  onClick={() => { setSearchQuery(''); setDistanceFilter(null); }}
+                  className="text-xs text-destructive hover:text-destructive/90 font-medium"
+                >
+                  Clear all
                 </button>
               )}
             </div>
-            {distanceOptions.map(({ key, icon: Icon, label }) => (
-              <button
-                key={key}
-                onClick={() => setDistanceFilter(prev => prev === key ? null : key)}
-                disabled={isGeocoding}
-                className={cn(
-                  'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
-                  distanceFilter === key
-                    ? 'bg-blue-600 text-white border-blue-600'
-                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700',
-                  isGeocoding && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {label}
-              </button>
-            ))}
-            {hasActiveFilters && (
-              <button
-                onClick={() => { setSearchQuery(''); setDistanceFilter(null); }}
-                className="text-xs text-red-600 hover:text-red-700 font-medium"
-              >
-                Clear all
-              </button>
-            )}
           </div>
         </div>
-
+        
         {isLoading ? (
           <LoadingSpinner message="Loading events..." />
         ) : displayedEvents.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg border shadow-sm">
+          <div className="bg-card/85 border border-white/10 rounded-xl p-12">
             <EmptyState />
           </div>
         ) : (
@@ -170,9 +192,8 @@ export default function Home() {
             onResetToToday={resetToToday}
             onDayClick={handleDayClick}
           />
-
         )}
-
+        
         <DayEventsModal
           date={selectedDateKey ? new Date(selectedDateKey + 'T00:00:00') : null}
           events={selectedDayEvents || []}
