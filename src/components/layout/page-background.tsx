@@ -7,13 +7,12 @@ interface PageBackgroundProps {
 }
 
 const CITY_IMAGES: Record<string, string> = {
-  monheim: 'https://www.monheim.de/fileadmin/user_upload/Media/Bilder_NEU/00_Headerbilder/Header-Olympia_1.jpg',
-  default: 'https://www.monheim.de/fileadmin/user_upload/Media/Bilder_NEU/00_Headerbilder/Header-Olympia_3.jpg',
+  monheim: '/images/monheim-background.jpg',
+  default: '/images/monheim-background.jpg',
 };
 
 export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
-  const imageUrl = CITY_IMAGES[hometown] || CITY_IMAGES.default;
-  
+  const imageUrl = CITY_IMAGES[hometown] || CITY_IMAGES.default;  
   return (
     <div className="fixed inset-0 -z-10 h-screen w-screen overflow-hidden">
       <Image
@@ -22,7 +21,7 @@ export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
         fill
         priority
         className="object-cover"
-        quality={85}
+        quality={90}
         sizes="100vw"
       />
       <div className="absolute inset-0 bg-background/85 dark:bg-background/90 backdrop-blur-sm" />
