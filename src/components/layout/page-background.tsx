@@ -7,8 +7,8 @@ interface PageBackgroundProps {
 }
 
 const CITY_IMAGES: Record<string, string> = {
-  monheim: '/images/monheim-background.jpg',
-  default: '/images/monheim-background.jpg',
+  monheim: '/images/schelmenturm.jpg',
+  default: '/images/schelmenturm.jpg',
 };
 
 export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
@@ -21,11 +21,11 @@ export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
         fill
         priority
         className="object-cover"
-        quality={90}
+        quality={100}
         sizes="100vw"
         unoptimized
       />
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
     </div>
   );
 }
