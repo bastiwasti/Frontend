@@ -14,7 +14,7 @@ const CITY_IMAGES: Record<string, string> = {
 export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
   const imageUrl = CITY_IMAGES[hometown] || CITY_IMAGES.default;  
   return (
-    <div className="fixed inset-0 -z-10 h-screen w-screen overflow-hidden">
+    <div className="fixed inset-0 -z-10 h-screen w-screen overflow-hidden bg-black">
       <Image
         src={imageUrl}
         alt={`${hometown} cityscape`}
@@ -23,8 +23,9 @@ export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
         className="object-cover"
         quality={90}
         sizes="100vw"
+        unoptimized
       />
-      <div className="absolute inset-0 bg-background/85 dark:bg-background/90 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
     </div>
   );
 }
