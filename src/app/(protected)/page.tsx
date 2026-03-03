@@ -100,79 +100,81 @@ export default function Home() {
   return (
     <div className="min-h-screen py-6 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 space-y-4">
-          <HometownImageBox hometown={homeCity} />
-          
-          <div className="bg-card border p-4 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Home:</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Select 
-                  value={homeCity} 
-                  onValueChange={setHomeCity}
-                  disabled={isGeocoding}
-                >
-                  <SelectTrigger className="h-8 w-48 text-sm bg-background border focus:ring-2 ring-primary">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {homeCityOptions.map(city => (
-                      <SelectItem key={city} value={city} className="capitalize">
-                        {city.replace(/_/g, ' ')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {isGeocoding && (
-                  <span className="text-xs text-muted-foreground animate-pulse">Loading...</span>
-                )}
-              </div>
-            </div>
+        <div className="mb-8">
+          <div className="relative rounded-2xl overflow-hidden border shadow-2xl">
+            <HometownImageBox hometown={homeCity} />
             
-            <div className="flex items-center gap-3 mt-4 pt-4 border-t">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search events..."
-                  className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                    <X className="h-4 w-4" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium text-white">Home:</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Select 
+                    value={homeCity} 
+                    onValueChange={setHomeCity}
+                    disabled={isGeocoding}
+                  >
+                    <SelectTrigger className="h-8 w-48 text-sm bg-white/10 border-white/20 text-white backdrop-blur-sm focus:ring-2 focus:ring-white">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {homeCityOptions.map(city => (
+                        <SelectItem key={city} value={city} className="capitalize">
+                          {city.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {isGeocoding && (
+                    <span className="text-xs text-white/70 animate-pulse">Loading...</span>
+                  )}
+                </div>
+              </div>
+            
+              <div className="flex items-center gap-3 mt-4 pt-4 border-t border-white/20">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/70" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search events..."
+                    className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-white/20 bg-white/10 text-white placeholder:text-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/70 hover:text-white">
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                {distanceOptions.map(({ key, icon: Icon, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setDistanceFilter(prev => prev === key ? null : key)}
+                    disabled={isGeocoding}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border border-white/20 backdrop-blur-sm',
+                      distanceFilter === key
+                        ? 'bg-white/30 text-white shadow-lg'
+                        : 'bg-transparent text-white/70 hover:bg-white/20',
+                      isGeocoding && 'opacity-50 cursor-not-allowed'
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {label}
+                  </button>
+                ))}
+                {hasActiveFilters && (
+                  <button
+                    onClick={() => { setSearchQuery(''); setDistanceFilter(null); }}
+                    className="text-xs text-white/70 hover:text-white"
+                  >
+                    Clear all
                   </button>
                 )}
               </div>
-              {distanceOptions.map(({ key, icon: Icon, label }) => (
-                <button
-                  key={key}
-                  onClick={() => setDistanceFilter(prev => prev === key ? null : key)}
-                  disabled={isGeocoding}
-                  className={cn(
-                    'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all border',
-                    distanceFilter === key
-                      ? 'bg-primary text-primary-foreground shadow-md'
-                      : 'bg-background text-muted-foreground hover:bg-accent',
-                    isGeocoding && 'opacity-50 cursor-not-allowed'
-                  )}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {label}
-                </button>
-              ))}
-              {hasActiveFilters && (
-                <button
-                  onClick={() => { setSearchQuery(''); setDistanceFilter(null); }}
-                  className="text-xs text-destructive hover:text-destructive/90 font-medium"
-                >
-                  Clear all
-                </button>
-              )}
             </div>
           </div>
         </div>
