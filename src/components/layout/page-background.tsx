@@ -7,8 +7,8 @@ interface PageBackgroundProps {
 }
 
 const CITY_IMAGES: Record<string, string> = {
-  monheim: '/images/schelmenturm.jpg',
-  default: '/images/schelmenturm.jpg',
+  monheim: '/images/monheim-innenstadt.jpg',
+  default: '/images/monheim-innenstadt.jpg',
 };
 
 export function PageBackground({ hometown = 'monheim' }: PageBackgroundProps) {
