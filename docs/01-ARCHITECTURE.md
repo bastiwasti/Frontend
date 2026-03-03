@@ -1,6 +1,6 @@
 # Architecture
 
-Next.js 16 / React 19 / TypeScript app displaying scraped events from SQLite.
+Next.js 16 / React 19 / TypeScript app displaying scraped events from PostgreSQL.
 
 ## Tech Stack
 
@@ -9,7 +9,7 @@ Next.js 16 / React 19 / TypeScript app displaying scraped events from SQLite.
 - **Styling:** Tailwind CSS 4
 - **UI Components:** Radix UI (shadcn/ui pattern)
 - **Auth:** NextAuth.js (beta) with Google OAuth
-- **Database:** SQLite via better-sqlite3
+- **Database:** PostgreSQL via pg (connection pooling)
 - **Charts:** react-plotly.js (dynamic import, SSR disabled)
 - **Dates:** date-fns, react-day-picker
 - **Icons:** Lucide React
@@ -27,6 +27,7 @@ src/
 │   ├── filter-utils.ts             # hasActiveFilters, applyEventFilters
 │   ├── analytics-utils.ts          # getDimensionValue, dimension/metric/chartType options
 │   └── utils.ts                    # cn() Tailwind merge helper
+│   ├── db.ts                       # Database connection (PostgreSQL via pg)
 ├── hooks/
 │   ├── use-events.ts               # useEvents() → { events, isLoading, error }
 │   ├── use-runs.ts                 # useRuns() → { runs, isLoading }
@@ -58,7 +59,7 @@ src/
 │   │   └── session-provider.tsx    # NextAuth SessionProvider wrapper
 │   └── Navigation.tsx              # Top nav bar with route links
 ├── config/
-│   └── db.ts                       # DB_PATH constant
+│   └── db.ts                       # DB_CONFIG for PostgreSQL connection
 ├── app/
 │   ├── layout.tsx                  # Root layout (fonts, AuthProvider, Navigation)
 │   ├── (protected)/
@@ -87,7 +88,7 @@ src/
 ## Data Flow
 
 ```
-SQLite DB (/home/vscode/projects/WebScraper/data/events.db)
+PostgreSQL DB (vmpostgres → webscraper schema)
     │
     ├── GET /api/events → deduplicates via ROW_NUMBER window function
     │                      returns 11 fields per event (no HTML blobs)

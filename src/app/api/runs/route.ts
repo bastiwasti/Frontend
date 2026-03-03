@@ -1,11 +1,9 @@
-import Database from 'better-sqlite3';
 import { NextResponse } from 'next/server';
-import { DB_PATH } from '@/config/db';
+import { query } from '@/lib/db';
 
 export async function GET() {
   try {
-    const db = new Database(DB_PATH, { readonly: true });
-    const runs = db.prepare(`
+    const result = await query(`
       SELECT r.*, 
              s.duration, 
              s.events_found, 
@@ -15,9 +13,8 @@ export async function GET() {
       FROM runs r
       LEFT JOIN status s ON r.id = s.run_id
       ORDER BY r.id DESC
-    `).all();
-    db.close();
-    const response = NextResponse.json(runs);
+    `);
+    const response = NextResponse.json(result.rows);
     response.headers.set('Cache-Control', 'public, max-age=300');
     return response;
   } catch {

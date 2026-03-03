@@ -111,3 +111,9 @@ const authConfig: NextAuthConfig = {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
+
+/** Get the current user's email from the session, or null if unauthenticated. */
+export async function getSessionEmail(): Promise<string | null> {
+  const session = await auth();
+  return session?.user?.email?.toLowerCase() ?? null;
+}

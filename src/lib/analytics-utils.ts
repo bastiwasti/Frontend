@@ -3,7 +3,7 @@ import type { Event, Run, Dimension, DimensionOption, MetricOption, ChartTypeOpt
 export function getDimensionValue(item: Event | Run, dim: Dimension): string {
   const isEvent = 'category' in item;
   const date = isEvent
-    ? ((item as Event).start_datetime || item.created_at)
+    ? ((item as Event).start_datetime || (item as Event).created_at || (item as Event).first_seen_at)
     : item.created_at;
   const d = date ? new Date(date) : new Date();
 

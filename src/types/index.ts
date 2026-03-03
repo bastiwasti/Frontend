@@ -1,6 +1,5 @@
 export interface Event {
   id: number;
-  run_id: number | null;
   name: string;
   description: string | null;
   location: string | null;
@@ -10,7 +9,17 @@ export interface Event {
   category: string | null;
   source: string | null;
   origin: string | null;
-  created_at: string;
+  event_url: string | null;
+  user_rating: number | null;   // current user's rating
+  avg_rating: number | null;    // average across all users
+  rating_count: number;         // how many users rated
+  // events_distinct fields
+  first_seen_at?: string;
+  last_seen_at?: string;
+  seen_count?: number;
+  // raw events fields (analytics)
+  run_id?: number | null;
+  created_at?: string;
 }
 
 export interface Run {
@@ -24,6 +33,25 @@ export interface Run {
   valid_events: number | null;
   start_time: string | null;
   end_time: string | null;
+}
+
+export interface Location {
+  id: number;
+  name: string;
+  description: string | null;
+  address: string | null;
+  city: string | null;
+  postal_code: string | null;
+  latitude: number;
+  longitude: number;
+  category: string;
+  subcategory: string | null;
+  opening_hours: string | null;
+  website_url: string | null;
+  phone: string | null;
+  rating: number | null;
+  source: string;
+  distance_km: number | null;
 }
 
 export type DateRange = {

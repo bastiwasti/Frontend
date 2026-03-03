@@ -1,6 +1,5 @@
-import Database from 'better-sqlite3';
 import { NextResponse } from 'next/server';
-import { DB_PATH } from '@/config/db';
+import { query } from '@/lib/db';
 
 type Coords = { lat: number; lng: number };
 
@@ -37,48 +36,46 @@ export async function GET(request: Request) {
       return NextResponse.json({});
     }
 
-    // Open DB in read-write mode to allow inserts
-    const db = new Database(DB_PATH);
-
     // Ensure table exists
-    db.exec(`
+    await query(`
       CREATE TABLE IF NOT EXISTS city_coordinates (
         city_name TEXT PRIMARY KEY,
         lat REAL NOT NULL,
         lng REAL NOT NULL,
-        created_at TEXT DEFAULT (datetime('now'))
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
     // Batch-fetch known cities
-    const placeholders = requestedCities.map(() => '?').join(', ');
-    const rows = db
-      .prepare(`SELECT city_name, lat, lng FROM city_coordinates WHERE city_name IN (${placeholders})`)
-      .all(...requestedCities) as { city_name: string; lat: number; lng: number }[];
+    const placeholders = requestedCities.map((_, i) => `$${i + 1}`).join(', ');
+    const result = await query(
+      `SELECT city_name, lat, lng FROM city_coordinates WHERE city_name IN (${placeholders})`,
+      requestedCities
+    );
 
-    const result: Record<string, Coords | null> = {};
-    for (const city of requestedCities) result[city] = null;
-    for (const row of rows) result[row.city_name] = { lat: row.lat, lng: row.lng };
+    const coordsMap: Record<string, Coords | null> = {};
+    for (const city of requestedCities) coordsMap[city] = null;
+    for (const row of result.rows) {
+      coordsMap[row.city_name] = { lat: row.lat, lng: row.lng };
+    }
 
     // Geocode unknown cities sequentially, respecting Nominatim's 1 req/sec limit
-    const unknownCities = requestedCities.filter(c => result[c] === null);
-    const insert = db.prepare(
-      'INSERT OR IGNORE INTO city_coordinates (city_name, lat, lng) VALUES (?, ?, ?)'
-    );
+    const unknownCities = requestedCities.filter(c => coordsMap[c] === null);
 
     for (let i = 0; i < unknownCities.length; i++) {
       if (i > 0) await sleep(1100);
       const city = unknownCities[i];
       const coords = await geocodeNominatim(city);
       if (coords) {
-        insert.run(city, coords.lat, coords.lng);
-        result[city] = coords;
+        await query(
+          'INSERT INTO city_coordinates (city_name, lat, lng) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING',
+          [city, coords.lat, coords.lng]
+        );
+        coordsMap[city] = coords;
       }
-      // null stays in result for not-found cities (not stored in DB, retried next time)
     }
 
-    db.close();
-    return NextResponse.json(result);
+    return NextResponse.json(coordsMap);
   } catch (error) {
     console.error('Error in /api/city-coordinates:', error);
     return NextResponse.json({ error: 'Failed to fetch coordinates' }, { status: 500 });

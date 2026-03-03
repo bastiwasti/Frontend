@@ -8,7 +8,7 @@ A Next.js web app for browsing scraped events with calendar views, analytics, an
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in Google OAuth credentials + NEXTAUTH_SECRET
+cp .env.example .env.local   # fill in Google OAuth credentials + NEXTAUTH_SECRET + PostgreSQL config
 npm run dev                   # http://localhost:3000
 ```
 
@@ -30,7 +30,7 @@ sudo systemctl restart frontend
 
 ## Stack
 
-Next.js 16 / React 19 / TypeScript 5 / Tailwind CSS 4 / Radix UI / SQLite / NextAuth.js / date-fns / Plotly
+Next.js 16 / React 19 / TypeScript 5 / Tailwind CSS 4 / Radix UI / PostgreSQL / NextAuth.js / date-fns / Plotly
 
 ## Documentation
 

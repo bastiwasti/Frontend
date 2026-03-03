@@ -2,9 +2,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useEvents } from '@/hooks/use-events';
-import { useEventFilters } from '@/hooks/use-event-filters';
 import { useCityDistances } from '@/hooks/use-city-distances';
-import { EventFiltersPanel } from '@/components/events/event-filters-panel';
 import { CalendarMonthGrid } from '@/components/calendar/calendar-week-grid';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -12,31 +10,60 @@ import { EventDetailsModal } from '@/components/calendar/event-details-modal';
 import { DayEventsModal } from '@/components/calendar/day-events-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDateLocal } from '@/lib/event-utils';
+import { cn } from '@/lib/utils';
+import { Footprints, Bike, Car, Search, X } from 'lucide-react';
 import type { Event } from '@/types';
 
+type DistanceFilter = 'walk' | 'bike' | 'car' | null;
+const distanceOptions: { key: 'walk' | 'bike' | 'car'; icon: typeof Footprints; label: string; test: (km: number) => boolean }[] = [
+  { key: 'walk', icon: Footprints, label: '< 1 km', test: (km) => km < 1 },
+  { key: 'bike', icon: Bike, label: '< 10 km', test: (km) => km < 10 },
+  { key: 'car', icon: Car, label: 'all', test: () => true },
+];
+
 export default function Home() {
-  const { events, isLoading } = useEvents();
-  const { filters, setFilters, filteredEvents, uniqueValues, clearAllFilters, isActive } = useEventFilters(events);
+  const { events, isLoading, updateEventRating } = useEvents();
 
   const [homeCity, setHomeCity] = useState<string>(() => {
-    try { return localStorage.getItem('homeCity') ?? 'Monheim am Rhein'; } catch { return 'Monheim am Rhein'; }
+    try { return localStorage.getItem('homeCity') ?? 'monheim_am_rhein'; } catch { return 'monheim_am_rhein'; }
   });
   useEffect(() => {
     try { localStorage.setItem('homeCity', homeCity); } catch {}
   }, [homeCity]);
 
-  const { getDistanceKm, isLoading: isGeocoding } = useCityDistances(uniqueValues.cities, homeCity);
-
-  const [originFilter, setOriginFilter] = useState<string>('');
-
-  const displayedEvents = useMemo(
-    () => originFilter ? filteredEvents.filter(e => e.origin === originFilter) : filteredEvents,
-    [filteredEvents, originFilter]
+  const uniqueCities = useMemo(
+    () => Array.from(new Set(events.map(e => e.city).filter((v): v is string => Boolean(v)))).sort(),
+    [events]
   );
 
+  const { getDistanceKm, isLoading: isGeocoding } = useCityDistances(uniqueCities, homeCity);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [distanceFilter, setDistanceFilter] = useState<DistanceFilter>(null);
+
+  const displayedEvents = useMemo(() => {
+    let result = events;
+    if (searchQuery.trim()) {
+      const terms = searchQuery.toLowerCase().split(/\s+/).filter(Boolean);
+      result = result.filter(e => {
+        const haystack = [e.name, e.description, e.location, e.city, e.category]
+          .filter(Boolean).join(' ').toLowerCase();
+        return terms.every(term => haystack.includes(term));
+      });
+    }
+    if (distanceFilter) {
+      const { test } = distanceOptions.find(o => o.key === distanceFilter)!;
+      result = result.filter(e => {
+        const km = getDistanceKm(e.city ?? null);
+        return km !== null && test(km);
+      });
+    }
+    return result;
+  }, [events, searchQuery, distanceFilter, getDistanceKm]);
+
   const [referenceDate, setReferenceDate] = useState<Date>(new Date());
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [selectedDayEvents, setSelectedDayEvents] = useState<Event[] | null>(null);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [selectedDateKey, setSelectedDateKey] = useState<string | null>(null);
 
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, Event[]> = {};
@@ -49,10 +76,12 @@ export default function Home() {
     return grouped;
   }, [displayedEvents]);
 
+  const selectedDayEvents = selectedDateKey ? (eventsByDate[selectedDateKey] || []) : null;
+  const selectedEvent = selectedEventId ? (displayedEvents.find(e => e.id === selectedEventId) ?? null) : null;
+
   const handleDayClick = useCallback((date: Date) => {
-    const dateKey = formatDateLocal(date);
-    setSelectedDayEvents(eventsByDate[dateKey] || []);
-  }, [eventsByDate]);
+    setSelectedDateKey(formatDateLocal(date));
+  }, []);
 
   const navigatePrev = useCallback(() => {
     setReferenceDate(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
@@ -64,7 +93,8 @@ export default function Home() {
 
   const resetToToday = useCallback(() => setReferenceDate(new Date()), []);
 
-  const homeCityOptions = Array.from(new Set(['Monheim am Rhein', ...uniqueValues.cities])).sort();
+  const homeCityOptions = Array.from(new Set(['monheim_am_rhein', ...uniqueCities])).sort();
+  const hasActiveFilters = searchQuery !== '' || distanceFilter !== null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
@@ -87,39 +117,49 @@ export default function Home() {
               <span className="text-xs text-gray-400 animate-pulse">Geocoding…</span>
             )}
           </div>
-        </div>
-
-        <EventFiltersPanel
-          filters={filters}
-          onFiltersChange={setFilters}
-          uniqueLocations={uniqueValues.locations}
-          uniqueCities={uniqueValues.cities}
-          uniqueCategories={uniqueValues.categories}
-          uniqueSources={[]}
-          hasActiveFilters={isActive || originFilter !== ''}
-          onClearFilters={() => { clearAllFilters(); setOriginFilter(''); }}
-          isLoading={isLoading}
-          extraFilters={
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Origin</label>
-              <Select
-                value={originFilter || 'all'}
-                onValueChange={(v) => setOriginFilter(v === 'all' ? '' : v)}
-                disabled={isLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All origins" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All origins</SelectItem>
-                  {(uniqueValues.origins || []).map(origin => (
-                    <SelectItem key={origin} value={origin}>{origin}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="flex items-center gap-3 mt-3">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search events..."
+                className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
-          }
-        />
+            {distanceOptions.map(({ key, icon: Icon, label }) => (
+              <button
+                key={key}
+                onClick={() => setDistanceFilter(prev => prev === key ? null : key)}
+                disabled={isGeocoding}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors border',
+                  distanceFilter === key
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700',
+                  isGeocoding && 'opacity-50 cursor-not-allowed'
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+              </button>
+            ))}
+            {hasActiveFilters && (
+              <button
+                onClick={() => { setSearchQuery(''); setDistanceFilter(null); }}
+                className="text-xs text-red-600 hover:text-red-700 font-medium"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+        </div>
 
         {isLoading ? (
           <LoadingSpinner message="Loading events..." />
@@ -140,14 +180,14 @@ export default function Home() {
         )}
 
         <DayEventsModal
-          date={selectedDayEvents?.length && !selectedEvent ? new Date(selectedDayEvents[0].start_datetime || '') : null}
+          date={selectedDateKey ? new Date(selectedDateKey + 'T00:00:00') : null}
           events={selectedDayEvents || []}
-          onClose={() => setSelectedDayEvents(null)}
-          onEventClick={setSelectedEvent}
+          onClose={() => setSelectedDateKey(null)}
+          onEventClick={(event) => setSelectedEventId(event.id)}
           getDistanceKm={getDistanceKm}
           homeCity={homeCity}
         />
-        <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        <EventDetailsModal event={selectedEvent} onClose={() => setSelectedEventId(null)} onRatingChange={updateEventRating} />
       </div>
     </div>
   );

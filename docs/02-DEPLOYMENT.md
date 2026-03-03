@@ -3,13 +3,13 @@
 ## System Overview
 
 ```
-Browser → nginx (SSL, port 443) → Next.js (port 3000) → SQLite
+Browser → nginx (SSL, port 443) → Next.js (port 3000) → PostgreSQL
 ```
 
 - **Domain:** eventig.app
 - **Server:** Ubuntu, systemd-managed
 - **SSL:** Let's Encrypt via nginx
-- **Database:** `/home/vscode/projects/WebScraper/data/events.db`
+- **Database:** PostgreSQL (vmpostgres → webscraper schema)
 
 ## Service Management
 
@@ -78,13 +78,26 @@ sudo nginx -t && sudo systemctl reload nginx
 File: `/home/vscode/projects/Frontend/.env.local`
 
 ```env
+# OAuth Credentials
 GOOGLE_CLIENT_ID=...apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=GOCSPX-...
+
+# NextAuth Configuration
 NEXTAUTH_SECRET=...
 NEXTAUTH_URL=https://eventig.app
+
+# PostgreSQL Database Configuration
+PG_HOST=localhost
+PG_PORT=5432
+PG_DATABASE=vmpostgres
+PG_USER=jobsearch_readonly
+PG_PASSWORD=...
+PG_SCHEMA=webscraper
 ```
 
 Generate a new secret: `openssl rand -base64 32`
+
+**For production builds**, also create `.env.production` with the same variables (Next.js loads both `.env.local` and `.env.production`).
 
 ## Verification
 

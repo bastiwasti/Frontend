@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, memo } from 'react';
-import { ExternalLink, MapPin, Building2, Calendar, Clock, Tag, Plus, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect, memo } from 'react';
+import { ExternalLink, MapPin, Building2, Calendar, Clock, Tag, Star, Plus, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { StarRating } from '@/components/ui/star-rating';
 import {
   Dialog,
   DialogContent,
@@ -16,14 +17,22 @@ import { useSession } from 'next-auth/react';
 interface EventDetailsModalProps {
   event: Event | null;
   onClose: () => void;
+  onRatingChange?: (eventId: number, userRating: number | null, avgRating: number | null, ratingCount: number) => void;
 }
 
-function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) {
+function EventDetailsModalComponent({ event, onClose, onRatingChange }: EventDetailsModalProps) {
   const { data: session } = useSession();
   const { dateRange, timeRange } = formatEventDateTime(event?.start_datetime || null, event?.end_datetime || null);
   const [isAddingToCalendar, setIsAddingToCalendar] = useState(false);
   const [addToCalendarSuccess, setAddToCalendarSuccess] = useState(false);
   const [addToCalendarError, setAddToCalendarError] = useState<string | null>(null);
+  const [localRating, setLocalRating] = useState<number | null>(event?.user_rating ?? null);
+  const [isRating, setIsRating] = useState(false);
+
+  // Sync local rating when event changes
+  useEffect(() => {
+    setLocalRating(event?.user_rating ?? null);
+  }, [event?.id, event?.user_rating]);
 
   const addToGoogleCalendar = async () => {
     if (!event) return;
@@ -101,6 +110,27 @@ function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) 
     }
   };
 
+  const handleRate = async (newRating: number | null) => {
+    if (!event) return;
+    const prevRating = localRating;
+    setLocalRating(newRating);
+    setIsRating(true);
+    try {
+      const res = await fetch(`/api/events/${event.id}/rating`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating: newRating }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      const data = await res.json();
+      onRatingChange?.(event.id, data.user_rating, data.avg_rating, data.rating_count);
+    } catch {
+      setLocalRating(prevRating);
+    } finally {
+      setIsRating(false);
+    }
+  };
+
   if (!event) return null;
 
   return (
@@ -167,6 +197,20 @@ function EventDetailsModalComponent({ event, onClose }: EventDetailsModalProps) 
               </div>
             </div>
           )}
+
+          <div className="pt-2 border-t border-gray-100 dark:border-gray-700 space-y-1">
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 shrink-0 text-gray-600 dark:text-gray-400" />
+              <span className="font-medium text-gray-700 dark:text-gray-300">Your Rating:</span>
+              <StarRating rating={localRating} onRate={handleRate} isLoading={isRating} />
+            </div>
+            {event.avg_rating !== null && event.rating_count > 0 && (
+              <div className="flex items-center gap-1.5 pl-6 text-sm text-gray-500 dark:text-gray-400">
+                <span>Avg: {event.avg_rating}</span>
+                <span className="text-xs">({event.rating_count} {event.rating_count === 1 ? 'rating' : 'ratings'})</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {event.source && (
