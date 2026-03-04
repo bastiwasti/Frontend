@@ -14,6 +14,7 @@ const DEFAULT_FILTERS: BaseFilterState = {
   source: [],
   origin: [],
   dateRange: { from: undefined },
+  minRating: null,
 };
 
 // ── Serialization ──────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ function deserializeFilters(raw: unknown): BaseFilterState {
     source: isStringArray(obj.source) ? obj.source : [],
     origin: isStringArray(obj.origin) ? obj.origin : [],
     dateRange: { from, to },
+    minRating: typeof obj.minRating === 'number' ? obj.minRating : null,
   };
 }
 

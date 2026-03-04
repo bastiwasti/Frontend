@@ -33,6 +33,7 @@ export interface Run {
   valid_events: number | null;
   start_time: string | null;
   end_time: string | null;
+  full_run: number | null;
 }
 
 export interface Location {
@@ -66,6 +67,7 @@ export interface BaseFilterState {
   source: string[];
   origin: string[];
   dateRange: DateRange;
+  minRating: number | null;
 }
 
 export interface EventListFilterState extends BaseFilterState {

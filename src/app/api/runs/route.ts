@@ -9,7 +9,8 @@ export async function GET() {
              s.events_found, 
              s.valid_events, 
              s.start_time, 
-             s.end_time
+             s.end_time,
+             s.full_run
       FROM runs r
       LEFT JOIN status s ON r.id = s.run_id
       ORDER BY r.id DESC

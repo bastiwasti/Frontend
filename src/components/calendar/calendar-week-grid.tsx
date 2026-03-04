@@ -2,9 +2,16 @@
 
 import { useMemo } from 'react';
 import { format, isSameDay } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { formatDateLocal } from '@/lib/event-utils';
 import type { Event } from '@/types';
+
+function getDayAverageRating(events: Event[]): number | null {
+  const ratedEvents = events.filter(e => e.avg_rating !== null);
+  if (ratedEvents.length === 0) return null;
+  const sum = ratedEvents.reduce((acc, e) => acc + e.avg_rating!, 0);
+  return Math.round((sum / ratedEvents.length) * 10) / 10;
+}
 
 interface CalendarDay {
   date: Date;
@@ -137,12 +144,22 @@ export function CalendarMonthGrid({
                ].join(' ')}>
                  {day.date.getDate()}
                </div>
-               {day.events.length > 0 && (
-                 <span className="inline-flex items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
-                   <span className="sm:hidden">{day.events.length}</span>
-                   <span className="hidden sm:inline">{day.events.length} Event{day.events.length !== 1 ? 's' : ''}</span>
-                 </span>
-               )}
+                {day.events.length > 0 && (
+                  <span className="inline-flex items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
+                    <span className="sm:hidden">{day.events.length}</span>
+                    <span className="hidden sm:inline">{day.events.length} Event{day.events.length !== 1 ? 's' : ''}</span>
+                  </span>
+                )}
+                {(() => {
+                  const avgRating = getDayAverageRating(day.events);
+                  if (avgRating === null) return null;
+                  return (
+                    <div className="flex items-center gap-1 mt-1.5 text-amber-500">
+                      <Star className="h-3 w-3 fill-amber-500" />
+                      <span className="text-xs font-medium">{avgRating}</span>
+                    </div>
+                  );
+                })()}
             </div>
           );
         })}

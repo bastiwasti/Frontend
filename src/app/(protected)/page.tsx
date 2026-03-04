@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { Footprints, Bike, Car, Search, X, MapPin } from 'lucide-react';
 import { HometownImageBox } from '@/components/layout/page-background';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StarFilterButtons } from '@/components/ui/star-filter-buttons';
 import type { Event } from '@/types';
 
 type DistanceFilter = 'walk' | 'bike' | 'car' | null;
@@ -41,6 +42,7 @@ export default function Home() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [distanceFilter, setDistanceFilter] = useState<DistanceFilter>(null);
+  const [minRating, setMinRating] = useState<number | null>(null);
 
   const displayedEvents = useMemo(() => {
     let result = events;
@@ -59,8 +61,11 @@ export default function Home() {
         return km !== null && test(km);
       });
     }
+    if (minRating !== null) {
+      result = result.filter(e => e.avg_rating === null || e.avg_rating >= minRating);
+    }
     return result;
-  }, [events, searchQuery, distanceFilter, getDistanceKm]);
+  }, [events, searchQuery, distanceFilter, minRating, getDistanceKm]);
 
   const [referenceDate, setReferenceDate] = useState<Date>(new Date());
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
@@ -95,7 +100,7 @@ export default function Home() {
   const resetToToday = useCallback(() => setReferenceDate(new Date()), []);
 
   const homeCityOptions = Array.from(new Set(['monheim_am_rhein', ...uniqueCities])).sort();
-  const hasActiveFilters = searchQuery !== '' || distanceFilter !== null;
+  const hasActiveFilters = searchQuery !== '' || distanceFilter !== null || minRating !== null;
 
   return (
     <div className="min-h-screen py-6 px-4">
@@ -166,9 +171,10 @@ export default function Home() {
                     {label}
                   </button>
                 ))}
+                <StarFilterButtons minRating={minRating} onRatingChange={setMinRating} />
                 {hasActiveFilters && (
                   <button
-                    onClick={() => { setSearchQuery(''); setDistanceFilter(null); }}
+                    onClick={() => { setSearchQuery(''); setDistanceFilter(null); setMinRating(null); }}
                     className="text-xs text-white/70 hover:text-white"
                   >
                     Clear all

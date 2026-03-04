@@ -10,7 +10,8 @@ export function hasActiveFilters(filters: BaseFilterState): boolean {
     filters.source.length > 0 ||
     filters.origin.length > 0 ||
     filters.dateRange.from !== undefined ||
-    filters.dateRange.to !== undefined
+    filters.dateRange.to !== undefined ||
+    filters.minRating !== null
   );
 }
 
@@ -34,6 +35,10 @@ export function applyEventFilters(events: Event[], filters: BaseFilterState): Ev
       if (!startDate || !isValid(startDate)) return false;
       if (filters.dateRange.from && startDate < filters.dateRange.from) return false;
       if (filters.dateRange.to && startDate > filters.dateRange.to) return false;
+    }
+
+    if (filters.minRating !== null) {
+      if (event.avg_rating !== null && event.avg_rating < filters.minRating) return false;
     }
 
     return true;

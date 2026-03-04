@@ -21,8 +21,7 @@ export default function StatusPage() {
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Run ID</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Agent</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cities</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Full Run</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Duration</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Events</th>
                   <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Valid</th>
@@ -36,10 +35,9 @@ export default function StatusPage() {
                       <span className="text-sm font-semibold text-foreground">#{run.id}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-muted-foreground">{run.agent}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-muted-foreground">{run.cities || 'N/A'}</span>
+                      <span className={run.full_run === 1 ? 'text-sm font-semibold text-green-700 dark:text-green-400' : 'text-sm text-muted-foreground'}>
+                        {run.full_run === 1 ? 'yes' : 'no'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-1">
