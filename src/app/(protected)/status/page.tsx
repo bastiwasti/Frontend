@@ -60,7 +60,7 @@ export default function StatusPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-muted-foreground">
-                        {new Date(run.created_at).toLocaleDateString()}
+                        {new Date(run.created_at).toLocaleString()}
                       </span>
                     </td>
                   </tr>
