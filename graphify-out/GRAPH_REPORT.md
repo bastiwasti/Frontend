@@ -1,7 +1,7 @@
-# Graph Report - /home/sebastian/projects/frontend  (2026-05-04)
+# Graph Report - .  (2026-05-04)
 
 ## Corpus Check
-- Corpus is ~18,885 words - fits in a single context window. You may not need a graph.
+- Corpus is ~18,981 words - fits in a single context window. You may not need a graph.
 
 ## Summary
 - 159 nodes · 182 edges · 25 communities (17 shown, 8 thin omitted)
@@ -9,26 +9,26 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ed67f43`
+- Built from commit: `a274323`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- [[_COMMUNITY_Main Page & Data Hooks|Main Page & Data Hooks]]
-- [[_COMMUNITY_UI Components & Calendar Chips|UI Components & Calendar Chips]]
-- [[_COMMUNITY_API Routes & AuthDB|API Routes & Auth/DB]]
-- [[_COMMUNITY_Analytics Dashboard|Analytics Dashboard]]
-- [[_COMMUNITY_Calendar Week Grid & Events|Calendar Week Grid & Events]]
-- [[_COMMUNITY_Event Filters & Calendar UI|Event Filters & Calendar UI]]
-- [[_COMMUNITY_Filter Logic & Persistence|Filter Logic & Persistence]]
-- [[_COMMUNITY_Locations Page & Map|Locations Page & Map]]
-- [[_COMMUNITY_Layout & Page Background|Layout & Page Background]]
-- [[_COMMUNITY_Distance Precalculation Script|Distance Precalculation Script]]
-- [[_COMMUNITY_Root Layout & Auth Provider|Root Layout & Auth Provider]]
-- [[_COMMUNITY_Login & Google Sign-In|Login & Google Sign-In]]
-- [[_COMMUNITY_City Coordinates API|City Coordinates API]]
-- [[_COMMUNITY_Runs & Status Page|Runs & Status Page]]
-- [[_COMMUNITY_Plotly Type Declarations|Plotly Type Declarations]]
+- [[_COMMUNITY_Community 0|Community 0]]
+- [[_COMMUNITY_Community 1|Community 1]]
+- [[_COMMUNITY_Community 2|Community 2]]
+- [[_COMMUNITY_Community 3|Community 3]]
+- [[_COMMUNITY_Community 4|Community 4]]
+- [[_COMMUNITY_Community 5|Community 5]]
+- [[_COMMUNITY_Community 6|Community 6]]
+- [[_COMMUNITY_Community 7|Community 7]]
+- [[_COMMUNITY_Community 8|Community 8]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 11|Community 11]]
+- [[_COMMUNITY_Community 12|Community 12]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 17|Community 17]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 16 edges
@@ -56,31 +56,31 @@
 
 ## Communities (25 total, 8 thin omitted)
 
-### Community 0 - "Main Page & Data Hooks"
+### Community 0 - "Community 0"
 Cohesion: 0.16
 Nodes (7): useCityDistances(), useEvents(), EmptyState(), Select(), SelectItem(), SelectTrigger(), SelectValue()
 
-### Community 2 - "API Routes & Auth/DB"
+### Community 2 - "Community 2"
 Cohesion: 0.15
 Nodes (7): geocodeNominatim(), GET(), sleep(), GET(), getSessionEmail(), query(), PATCH()
 
-### Community 3 - "Analytics Dashboard"
+### Community 3 - "Community 3"
 Cohesion: 0.14
 Nodes (8): AnalyticsChart(), ChartControls(), KpiCards(), AnalyticsPage(), useAnalyticsData(), useEventsAndRuns(), getDimensionValue(), CardDescription()
 
-### Community 4 - "Calendar Week Grid & Events"
+### Community 4 - "Community 4"
 Cohesion: 0.12
 Nodes (4): formatDate(), buildColorMap(), formatDateLocal(), formatEventDateTime()
 
-### Community 5 - "Event Filters & Calendar UI"
+### Community 5 - "Community 5"
 Cohesion: 0.2
 Nodes (3): Calendar(), Popover(), PopoverTrigger()
 
-### Community 6 - "Filter Logic & Persistence"
+### Community 6 - "Community 6"
 Cohesion: 0.24
 Nodes (9): useDebounce(), deserializeFilters(), isStringArray(), loadFromStorage(), saveToStorage(), serializeFilters(), useEventFilters(), applyEventFilters() (+1 more)
 
-### Community 12 - "City Coordinates API"
+### Community 12 - "Community 12"
 Cohesion: 0.83
 Nodes (3): geocodeNominatim(), GET(), sleep()
 
@@ -92,17 +92,17 @@ Nodes (3): geocodeNominatim(), GET(), sleep()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `UI Components & Calendar Chips` to `Main Page & Data Hooks`, `Analytics Dashboard`, `Calendar Week Grid & Events`, `Event Filters & Calendar UI`?**
+- **Why does `cn()` connect `Community 1` to `Community 0`, `Community 3`, `Community 4`, `Community 5`?**
   _High betweenness centrality (0.211) - this node is a cross-community bridge._
-- **Why does `LoadingSpinner()` connect `Locations Page & Map` to `Main Page & Data Hooks`, `Analytics Dashboard`?**
+- **Why does `LoadingSpinner()` connect `Community 7` to `Community 0`, `Community 3`?**
   _High betweenness centrality (0.073) - this node is a cross-community bridge._
-- **Why does `formatDateLocal()` connect `Calendar Week Grid & Events` to `Main Page & Data Hooks`?**
+- **Why does `formatDateLocal()` connect `Community 4` to `Community 0`?**
   _High betweenness centrality (0.040) - this node is a cross-community bridge._
 - **What connects `Plot` to the rest of the system?**
   _1 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `UI Components & Calendar Chips` be split into smaller, more focused modules?**
+- **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.11 - nodes in this community are weakly interconnected._
-- **Should `Analytics Dashboard` be split into smaller, more focused modules?**
+- **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.14 - nodes in this community are weakly interconnected._
-- **Should `Calendar Week Grid & Events` be split into smaller, more focused modules?**
+- **Should `Community 4` be split into smaller, more focused modules?**
   _Cohesion score 0.12 - nodes in this community are weakly interconnected._
