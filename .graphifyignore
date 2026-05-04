@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+public/
+*.min.js
+*.min.css
+*.map
+.env*
