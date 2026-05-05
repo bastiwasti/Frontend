@@ -1,15 +1,15 @@
 # Graph Report - .  (2026-05-05)
 
 ## Corpus Check
-- Corpus is ~19,335 words - fits in a single context window. You may not need a graph.
+- Corpus is ~19,523 words - fits in a single context window. You may not need a graph.
 
 ## Summary
-- 161 nodes · 184 edges · 24 communities (16 shown, 8 thin omitted)
+- 162 nodes · 186 edges · 25 communities (17 shown, 8 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `9aa8c3a`
+- Built from commit: `8630a1d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -27,7 +27,8 @@
 - [[_COMMUNITY_Community 10|Community 10]]
 - [[_COMMUNITY_Community 11|Community 11]]
 - [[_COMMUNITY_Community 12|Community 12]]
-- [[_COMMUNITY_Community 16|Community 16]]
+- [[_COMMUNITY_Community 13|Community 13]]
+- [[_COMMUNITY_Community 17|Community 17]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `cn()` - 16 edges
@@ -53,23 +54,23 @@
 - `formatEventDateTime()` --calls--> `formatDate()`  [INFERRED]
   src/lib/event-utils.ts → src/components/calendar/day-events-modal.tsx
 
-## Communities (24 total, 8 thin omitted)
+## Communities (25 total, 8 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.11
-Nodes (10): geocodeNominatim(), GET(), sleep(), geocodeNominatim(), GET(), sleep(), GET(), getSessionEmail() (+2 more)
+Cohesion: 0.13
+Nodes (9): geocodeNominatim(), GET(), sleep(), GET(), getSessionEmail(), query(), PATCH(), GET() (+1 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.16
 Nodes (7): useCityDistances(), useEvents(), EmptyState(), Select(), SelectItem(), SelectTrigger(), SelectValue()
 
 ### Community 3 - "Community 3"
-Cohesion: 0.14
-Nodes (8): AnalyticsChart(), ChartControls(), KpiCards(), AnalyticsPage(), useAnalyticsData(), useEventsAndRuns(), getDimensionValue(), CardDescription()
-
-### Community 4 - "Community 4"
 Cohesion: 0.12
 Nodes (4): formatDate(), buildColorMap(), formatDateLocal(), formatEventDateTime()
+
+### Community 4 - "Community 4"
+Cohesion: 0.14
+Nodes (8): AnalyticsChart(), ChartControls(), KpiCards(), AnalyticsPage(), useAnalyticsData(), useEventsAndRuns(), getDimensionValue(), CardDescription()
 
 ### Community 5 - "Community 5"
 Cohesion: 0.2
@@ -78,6 +79,10 @@ Nodes (3): Calendar(), Popover(), PopoverTrigger()
 ### Community 6 - "Community 6"
 Cohesion: 0.24
 Nodes (9): useDebounce(), deserializeFilters(), isStringArray(), loadFromStorage(), saveToStorage(), serializeFilters(), useEventFilters(), applyEventFilters() (+1 more)
+
+### Community 12 - "Community 12"
+Cohesion: 0.83
+Nodes (3): geocodeNominatim(), GET(), sleep()
 
 ## Knowledge Gaps
 - **1 isolated node(s):** `Plot`
@@ -88,16 +93,16 @@ Nodes (9): useDebounce(), deserializeFilters(), isStringArray(), loadFromStorage
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `cn()` connect `Community 2` to `Community 1`, `Community 3`, `Community 4`, `Community 5`?**
-  _High betweenness centrality (0.205) - this node is a cross-community bridge._
-- **Why does `LoadingSpinner()` connect `Community 7` to `Community 1`, `Community 3`?**
-  _High betweenness centrality (0.071) - this node is a cross-community bridge._
-- **Why does `formatDateLocal()` connect `Community 4` to `Community 1`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
+  _High betweenness centrality (0.203) - this node is a cross-community bridge._
+- **Why does `LoadingSpinner()` connect `Community 7` to `Community 1`, `Community 4`?**
+  _High betweenness centrality (0.070) - this node is a cross-community bridge._
+- **Why does `formatDateLocal()` connect `Community 3` to `Community 1`?**
+  _High betweenness centrality (0.038) - this node is a cross-community bridge._
 - **What connects `Plot` to the rest of the system?**
   _1 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.11 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.13 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.11 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
-  _Cohesion score 0.14 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12 - nodes in this community are weakly interconnected._
