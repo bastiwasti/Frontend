@@ -3,11 +3,13 @@ import { query } from '@/lib/db';
 
 export async function GET() {
   try {
-    const [scrapeRes, ratingRes, dailyRes, totalsRes] = await Promise.all([
+    const [scrapeRes, ratingRes, dailyRes, totalsRes, newDailyRes, writtenDailyRes] = await Promise.all([
       query(`
         SELECT r.id, r.cities,
                s.start_time, s.end_time, s.duration,
-               s.events_found, s.valid_events, s.events_regex, s.events_llm
+               s.events_found, s.valid_events, s.events_regex, s.events_llm,
+               (SELECT COUNT(*)::int FROM events_distinct
+                WHERE first_seen_at::date = s.start_time::date) AS events_new
         FROM runs r
         JOIN status s ON s.run_id = r.id
         WHERE s.full_run = 1 AND s.end_time IS NOT NULL
@@ -17,7 +19,13 @@ export async function GET() {
       query(`
         SELECT r.id,
                s.start_time, s.end_time, s.duration,
-               s.events_rated, s.ratings_failed, s.input_tokens, s.output_tokens
+               s.events_rated, s.ratings_failed, s.input_tokens, s.output_tokens,
+               (SELECT COUNT(*)::int FROM event_ratings
+                WHERE rated_at >= s.start_time::timestamp
+                  AND rated_at <= s.end_time::timestamp) AS user_ratings_written,
+               (SELECT COALESCE(json_agg(DISTINCT user_email)::text, '[]') FROM event_ratings
+                WHERE rated_at >= s.start_time::timestamp
+                  AND rated_at <= s.end_time::timestamp) AS rating_users
         FROM runs r
         JOIN status s ON s.run_id = r.id
         WHERE s.agent_type = 'rating' AND s.end_time IS NOT NULL
@@ -45,6 +53,20 @@ export async function GET() {
           (SELECT COUNT(DISTINCT user_email)::int FROM event_ratings) AS rating_users,
           (SELECT COUNT(DISTINCT event_id)::int FROM event_ratings)   AS rated_events
       `),
+      query(`
+        SELECT to_char(first_seen_at::date, 'YYYY-MM-DD') AS day,
+               COUNT(*)::int AS n
+        FROM events_distinct
+        WHERE first_seen_at::date > CURRENT_DATE - INTERVAL '7 days'
+        GROUP BY 1
+      `),
+      query(`
+        SELECT to_char(rated_at::date, 'YYYY-MM-DD') AS day,
+               COUNT(*)::int AS n
+        FROM event_ratings
+        WHERE rated_at::date > CURRENT_DATE - INTERVAL '7 days'
+        GROUP BY 1
+      `),
     ]);
 
     const sr = scrapeRes.rows[0];
@@ -58,6 +80,7 @@ export async function GET() {
       valid_events: sr.valid_events ?? 0,
       events_regex: sr.events_regex ?? 0,
       events_llm: sr.events_llm ?? 0,
+      events_new: sr.events_new ?? 0,
     } : null;
 
     const rr = ratingRes.rows[0];
@@ -70,13 +93,23 @@ export async function GET() {
       ratings_failed: rr.ratings_failed ?? 0,
       input_tokens: rr.input_tokens ?? 0,
       output_tokens: rr.output_tokens ?? 0,
+      user_ratings_written: rr.user_ratings_written ?? 0,
+      rating_users: parseUserList(rr.rating_users),
     } : null;
+
+    const newByDay     = new Map<string, number>(newDailyRes.rows.map((r: { day: string; n: number }) => [r.day, r.n]));
+    const writtenByDay = new Map<string, number>(writtenDailyRes.rows.map((r: { day: string; n: number }) => [r.day, r.n]));
+    const daily_7d = dailyRes.rows.map((r: Record<string, unknown>) => ({
+      ...r,
+      new_events:      newByDay.get(r.day as string)     ?? 0,
+      ratings_written: writtenByDay.get(r.day as string) ?? 0,
+    }));
 
     const response = NextResponse.json({
       timestamp: new Date().toISOString(),
       last_scrape,
       last_rating,
-      daily_7d: dailyRes.rows,
+      daily_7d,
       totals: totalsRes.rows[0],
     });
     response.headers.set('Cache-Control', 'public, max-age=300');
@@ -84,5 +117,15 @@ export async function GET() {
   } catch (err) {
     console.error('[stats] failed:', err);
     return NextResponse.json({ error: 'stats_unavailable' }, { status: 500 });
+  }
+}
+
+function parseUserList(raw: unknown): string[] {
+  if (typeof raw !== 'string') return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
   }
 }
