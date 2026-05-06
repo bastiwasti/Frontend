@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 14 96 96" width="96" height="96" role="img" aria-label="Eventig">
+  <defs>
+    <linearGradient id="pinMark" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1D4ED8"/>
+    </linearGradient>
+  </defs>
+  <path
+    d="M60 18 C42.327 18 28 32.327 28 50 C28 73.5 60 102 60 102 C60 102 92 73.5 92 50 C92 32.327 77.673 18 60 18 Z"
+    fill="url(#pinMark)"
+  />
+  <g transform="translate(40 36)" fill="#FFFFFF">
+    <rect x="0" y="4" width="40" height="30" rx="4"/>
+    <rect x="0" y="4" width="40" height="8" rx="4" fill="#1D4ED8"/>
+    <rect x="9" y="0" width="3" height="8" rx="1.5"/>
+    <rect x="28" y="0" width="3" height="8" rx="1.5"/>
+    <circle cx="11" cy="20" r="2.2" fill="#1D4ED8"/>
+    <circle cx="20" cy="20" r="2.2" fill="#1D4ED8"/>
+    <circle cx="29" cy="20" r="2.2" fill="#1D4ED8"/>
+    <circle cx="11" cy="27" r="2.2" fill="#1D4ED8"/>
+    <circle cx="20" cy="27" r="2.2" fill="#1D4ED8"/>
+  </g>
+</svg>

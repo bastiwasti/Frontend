@@ -1,6 +1,5 @@
 import { GoogleSignInButton } from "@/components/auth/google-signin-button"
 import { Footer } from "@/components/layout/footer"
-import { MapPin } from 'lucide-react'
 
 export default function LoginPage() {
   return (
@@ -9,7 +8,7 @@ export default function LoginPage() {
         <div className="max-w-md w-full mx-4">
           <div className="bg-card rounded-2xl border shadow-2xl p-8">
             <div className="flex items-center justify-center gap-2 mb-6">
-              <MapPin className="h-8 w-8 text-primary" />
+              <img src="/logo-mark.svg" alt="" className="h-10 w-10" />
               <h1 className="text-3xl font-bold text-foreground">
                 Eventig
               </h1>
