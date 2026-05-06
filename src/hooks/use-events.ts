@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useUserRatings } from '@/hooks/use-user-ratings';
 import type { Event } from '@/types';
 
 export function useEvents(): {
@@ -9,9 +10,10 @@ export function useEvents(): {
   error: string | null;
   updateEventRating: (eventId: number, userRating: number | null, avgRating: number | null, ratingCount: number) => void;
 } {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [baseEvents, setBaseEvents] = useState<Event[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { ratings: userRatings, setRating } = useUserRatings();
 
   useEffect(() => {
     async function fetchData() {
@@ -30,13 +32,13 @@ export function useEvents(): {
           throw new Error('API returned non-array data');
         }
 
-        setEvents(data);
+        setBaseEvents(data);
         setError(null);
       } catch (err) {
         console.error('Error fetching events:', err);
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         setError(errorMessage);
-        setEvents([]);
+        setBaseEvents([]);
       } finally {
         setIsLoading(false);
       }
@@ -44,17 +46,23 @@ export function useEvents(): {
     fetchData();
   }, []);
 
+  const events = useMemo<Event[]>(
+    () => baseEvents.map(e => ({ ...e, user_rating: userRatings.get(e.id) ?? null })),
+    [baseEvents, userRatings]
+  );
+
   const updateEventRating = useCallback(
     (eventId: number, userRating: number | null, avgRating: number | null, ratingCount: number) => {
-      setEvents(prev =>
+      setBaseEvents(prev =>
         prev.map(e =>
           e.id === eventId
-            ? { ...e, user_rating: userRating, avg_rating: avgRating, rating_count: ratingCount }
+            ? { ...e, avg_rating: avgRating, rating_count: ratingCount }
             : e
         )
       );
+      setRating(eventId, userRating);
     },
-    []
+    [setRating]
   );
 
   return { events, isLoading, error, updateEventRating };

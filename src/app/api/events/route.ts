@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
-import { getSessionEmail } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
@@ -41,25 +40,24 @@ export async function GET(request: Request) {
       `);
       events = result.rows;
     } else {
-      const userEmail = await getSessionEmail();
       const result = await query(`
+        WITH ratings AS (
+          SELECT event_id,
+                 ROUND(AVG(rating)::numeric, 1)::float AS avg_rating,
+                 COUNT(*)::int                          AS rating_count
+          FROM event_ratings
+          GROUP BY event_id
+        )
         SELECT ed.id, ed.name, ed.description, ed.location, ed.start_datetime,
                ed.end_datetime, ed.category, ed.source, ed.city, ed.origin, ed.event_url,
                ed.first_seen_at, ed.last_seen_at, ed.seen_count,
-               ur.rating AS user_rating,
-               agg.avg_rating,
-               COALESCE(agg.rating_count, 0) AS rating_count
+               r.avg_rating,
+               COALESCE(r.rating_count, 0) AS rating_count
         FROM events_distinct ed
-        LEFT JOIN event_ratings ur
-          ON ur.event_id = ed.id AND ur.user_email = $1
-        LEFT JOIN LATERAL (
-          SELECT ROUND(AVG(er.rating)::numeric, 1)::float AS avg_rating,
-                 COUNT(*)::int AS rating_count
-          FROM event_ratings er
-          WHERE er.event_id = ed.id
-        ) agg ON true
+        LEFT JOIN ratings r ON r.event_id = ed.id
+        WHERE ed.start_datetime >= NOW() - INTERVAL '30 days'
         ORDER BY ed.start_datetime ASC
-      `, [userEmail]);
+      `);
       events = result.rows;
     }
 
@@ -67,7 +65,7 @@ export async function GET(request: Request) {
     if (runId || source === 'raw') {
       response.headers.set('Cache-Control', 'public, max-age=300');
     } else {
-      response.headers.set('Cache-Control', 'no-cache');
+      response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
     }
     return response;
   } catch (error) {
