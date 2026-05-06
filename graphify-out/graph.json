@@ -85,13 +85,13 @@
       "norm_label": "readme.md"
     },
     {
-      "label": "Events Gallery",
+      "label": "Eventig",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L1",
-      "id": "readme_events_gallery",
+      "id": "readme_eventig",
       "community": 14,
-      "norm_label": "events gallery"
+      "norm_label": "eventig"
     },
     {
       "label": "Quick Start",
@@ -2863,7 +2863,7 @@
       "source_location": "L1",
       "weight": 1.0,
       "source": "readme_md",
-      "target": "readme_events_gallery",
+      "target": "readme_eventig",
       "confidence_score": 1.0
     },
     {
@@ -2872,7 +2872,7 @@
       "source_file": "README.md",
       "source_location": "L7",
       "weight": 1.0,
-      "source": "readme_events_gallery",
+      "source": "readme_eventig",
       "target": "readme_quick_start",
       "confidence_score": 1.0
     },
@@ -2882,7 +2882,7 @@
       "source_file": "README.md",
       "source_location": "L22",
       "weight": 1.0,
-      "source": "readme_events_gallery",
+      "source": "readme_eventig",
       "target": "readme_routes",
       "confidence_score": 1.0
     },
@@ -2892,7 +2892,7 @@
       "source_file": "README.md",
       "source_location": "L31",
       "weight": 1.0,
-      "source": "readme_events_gallery",
+      "source": "readme_eventig",
       "target": "readme_stack",
       "confidence_score": 1.0
     },
@@ -2902,7 +2902,7 @@
       "source_file": "README.md",
       "source_location": "L35",
       "weight": 1.0,
-      "source": "readme_events_gallery",
+      "source": "readme_eventig",
       "target": "readme_documentation",
       "confidence_score": 1.0
     },
@@ -6083,5 +6083,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "98d7720"
+  "built_at_commit": "4373bc3"
 }

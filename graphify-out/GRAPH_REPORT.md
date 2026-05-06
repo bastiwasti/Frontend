@@ -1,7 +1,7 @@
 # Graph Report - .  (2026-05-06)
 
 ## Corpus Check
-- Corpus is ~21,127 words - fits in a single context window. You may not need a graph.
+- Corpus is ~21,131 words - fits in a single context window. You may not need a graph.
 
 ## Summary
 - 309 nodes · 320 edges · 35 communities (30 shown, 5 thin omitted)
@@ -9,7 +9,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `98d7720`
+- Built from commit: `4373bc3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -46,7 +46,7 @@
 7. `query()` - 8 edges
 8. `Per-User Star/Rating System` - 7 edges
 9. `Architecture` - 6 edges
-10. `Events Gallery` - 5 edges
+10. `Eventig` - 5 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `PATCH()` --calls--> `getSessionEmail()`  [INFERRED]
@@ -120,7 +120,7 @@ Nodes (7): code:bash (npm run build), code:bash (sudo systemctl restart frontend
 
 ### Community 14 - "Community 14"
 Cohesion: 0.25
-Nodes (7): code:bash (npm install), code:bash (npm run build), Documentation, Events Gallery, Quick Start, Routes, Stack
+Nodes (7): code:bash (npm install), code:bash (npm run build), Documentation, Eventig, Quick Start, Routes, Stack
 
 ### Community 15 - "Community 15"
 Cohesion: 0.29
