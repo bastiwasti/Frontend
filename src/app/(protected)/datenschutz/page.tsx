@@ -143,6 +143,62 @@ export default function DatenschutzPage() {
         personenbezogenen Daten.
       </p>
 
+      <h2>
+        5a. Compliance mit der Google API Services User Data Policy (Limited Use)
+      </h2>
+      <p>
+        Die Nutzung und Übertragung der von Google APIs empfangenen
+        Informationen durch Eventig hält sich an die{' '}
+        <a
+          href="https://developers.google.com/terms/api-services-user-data-policy"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Google API Services User Data Policy
+        </a>{' '}
+        einschließlich der Anforderungen für eingeschränkte Nutzung
+        („Limited Use Requirements"). Konkret bedeutet das:
+      </p>
+      <ul>
+        <li>
+          Wir nutzen die von Google APIs empfangenen Daten ausschließlich, um
+          die in der App sichtbaren, nutzergesteuerten Funktionen (Anmeldung
+          und Hinzufügen einzelner Veranstaltungen zum eigenen
+          Google-Kalender) bereitzustellen.
+        </li>
+        <li>
+          Wir geben diese Daten nicht an Dritte weiter, außer dies ist
+          notwendig, um diese sichtbaren Funktionen bereitzustellen, ist
+          gesetzlich erforderlich oder erfolgt im Rahmen einer Fusion,
+          Übernahme oder eines Asset-Verkaufs mit ausdrücklicher Zustimmung
+          der Nutzer.
+        </li>
+        <li>
+          Wir verwenden diese Daten nicht für Werbung, einschließlich
+          personalisierter und nicht personalisierter Werbung.
+        </li>
+        <li>
+          Wir gestatten Menschen nicht, diese Daten zu lesen, außer du hast
+          ausdrücklich zugestimmt, die Daten sind zum Zweck der Sicherheit
+          oder zur Einhaltung geltender Gesetze erforderlich, oder die Daten
+          wurden aggregiert und werden für interne Operationen verwendet.
+        </li>
+      </ul>
+      <p>
+        <em>
+          Eventig&apos;s use and transfer to any other app of information
+          received from Google APIs will adhere to{' '}
+          <a
+            href="https://developers.google.com/terms/api-services-user-data-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Google API Services User Data Policy
+          </a>
+          , including the Limited Use requirements.
+        </em>
+      </p>
+
       <h2>6. Bewertung von Veranstaltungen</h2>
       <p>
         Im angemeldeten Zustand kannst du Veranstaltungen mit 1–5 Sternen
