@@ -2,6 +2,7 @@
 
 import { UserMenu } from "@/components/auth/user-menu"
 import { PageBackground, HometownImageBox } from "@/components/layout/page-background"
+import { Footer } from "@/components/layout/footer"
 import Navigation from "@/components/Navigation"
 import { MapPin } from 'lucide-react'
 
@@ -11,7 +12,7 @@ export default function ProtectedLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative flex flex-col">
       <PageBackground />
       <header className="border-b bg-card shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -28,9 +29,10 @@ export default function ProtectedLayout({
           </div>
         </div>
       </header>
-      <main className="relative z-10">
+      <main className="relative z-10 flex-1">
         {children}
       </main>
+      <Footer />
     </div>
   )
 }

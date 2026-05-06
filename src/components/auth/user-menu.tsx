@@ -1,11 +1,22 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useSession, signIn, signOut } from "next-auth/react"
 
 export function UserMenu() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
 
-  if (!session?.user) return null
+  if (status === "loading") return null
+
+  if (!session?.user) {
+    return (
+      <button
+        onClick={() => signIn("google")}
+        className="text-sm font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
+      >
+        Anmelden
+      </button>
+    )
+  }
 
   return (
     <div className="flex items-center gap-3">
@@ -23,7 +34,7 @@ export function UserMenu() {
         onClick={() => signOut()}
         className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
       >
-        Sign out
+        Abmelden
       </button>
     </div>
   )

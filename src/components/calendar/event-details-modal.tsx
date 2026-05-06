@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import type { Event } from '@/types';
 import { formatEventDateTime } from '@/lib/event-utils';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 
 interface EventDetailsModalProps {
   event: Event | null;
@@ -37,8 +37,7 @@ function EventDetailsModalComponent({ event, onClose, onRatingChange }: EventDet
   const addToGoogleCalendar = async () => {
     if (!event) return;
     if (!session?.accessToken) {
-      console.log('[Google Calendar] No access token in session', { hasSession: !!session, sessionKeys: session ? Object.keys(session) : [] });
-      setAddToCalendarError('Please sign in to add events to your calendar');
+      signIn('google', { callbackUrl: window.location.href });
       return;
     }
 
@@ -112,6 +111,10 @@ function EventDetailsModalComponent({ event, onClose, onRatingChange }: EventDet
 
   const handleRate = async (newRating: number | null) => {
     if (!event) return;
+    if (!session?.user) {
+      signIn('google', { callbackUrl: window.location.href });
+      return;
+    }
     const prevRating = localRating;
     setLocalRating(newRating);
     setIsRating(true);
@@ -258,7 +261,7 @@ function EventDetailsModalComponent({ event, onClose, onRatingChange }: EventDet
             ) : (
               <>
                 <Plus className="h-4 w-4" />
-                <span>Add to Google Calendar</span>
+                <span>{session?.user ? 'Add to Google Calendar' : 'Sign in & add to Google Calendar'}</span>
               </>
             )}
           </button>

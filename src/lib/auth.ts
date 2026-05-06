@@ -44,18 +44,6 @@ const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
-    async signIn({ user }) {
-      const allowedEmails = process.env.ALLOWED_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
-      const userEmail = user?.email?.toLowerCase();
-      
-      if (!userEmail || !allowedEmails.includes(userEmail)) {
-        console.log(`[auth] Access denied for email: ${userEmail}. Allowed emails: ${allowedEmails.join(', ')}`);
-        return false;
-      }
-      
-      console.log(`[auth] Access granted for email: ${userEmail}`);
-      return true;
-    },
     async jwt({ token, account }) {
       if (account) {
         token.accessToken = account.access_token

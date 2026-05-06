@@ -2,17 +2,21 @@
 
 ## Overview
 
-The app uses NextAuth.js (beta) with Google OAuth for authentication. All routes except `/login` are protected by middleware.
+The app uses NextAuth.js (beta) with Google OAuth. **Login is optional** — anyone can browse events without signing in. A Google session is only required for two write actions:
+
+- Adding an event to the user's Google Calendar (`calendar.events` scope, called client-side)
+- Rating an event (PATCH `/api/events/:id/rating` returns 401 without a session)
 
 **Scopes requested:** `openid`, `email`, `profile`, `calendar.events`
 
 ## Auth Flow
 
-1. User visits protected page → middleware redirects to `/login`
-2. User clicks "Sign in with Google" → redirects to Google consent screen
-3. Google redirects back with auth code → NextAuth exchanges for tokens
-4. JWT session created (httpOnly cookie, 7-day expiry)
-5. Access token auto-refreshes when expired (1 hour lifetime)
+1. User browses any page anonymously — no redirect.
+2. User clicks "Add to Google Calendar" or rates an event → `signIn("google", { callbackUrl })` is triggered, redirecting to Google's consent screen.
+3. Google redirects back with auth code → NextAuth exchanges for tokens.
+4. JWT session created (httpOnly cookie, 7-day expiry).
+5. Access token auto-refreshes when expired (1 hour lifetime).
+6. The middleware only redirects logged-in users away from `/login` back to `/` — it no longer gates other routes.
 
 ## Setup: Google Cloud Console
 
@@ -28,7 +32,8 @@ The app uses NextAuth.js (beta) with Google OAuth for authentication. All routes
 - Type: **External**
 - App name: `Events Gallery`
 - Add scopes: `openid`, `email`, `profile`, `calendar.events`
-- Add test users if in testing mode
+- **Publishing status: In production** (click "PUBLISH APP" to leave Testing mode — required for non-test users to log in).
+  - Because `calendar.events` is a *sensitive* scope, an unverified production app shows a "Google hasn't verified this app" warning before consent and is capped at ~100 lifetime token grants. To remove the warning and the cap, complete Google's app verification (logo, privacy-policy URL, terms-of-service URL, domain ownership). Verification typically takes 1–4 weeks.
 
 ### 3. Create Credentials
 
@@ -55,7 +60,7 @@ NEXTAUTH_URL=https://eventig.app    # or http://localhost:3000 for dev
 | File | Purpose |
 |------|---------|
 | `src/lib/auth.ts` | NextAuth config (Google provider, JWT callbacks, token refresh) |
-| `src/middleware.ts` | Route protection (checks session, redirects to /login) |
+| `src/middleware.ts` | Redirects logged-in users away from `/login` (no other gating) |
 | `src/app/api/auth/[...nextauth]/route.ts` | NextAuth API handlers |
 | `src/app/login/page.tsx` | Login page with Google sign-in button |
 | `src/components/auth/google-signin-button.tsx` | Sign-in button component |
