@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Events Gallery",
-  description: "Browse and filter discovered events",
+  title: "Eventig",
+  description: "Events für Familien — entdecken, bewerten und in den Google-Kalender übernehmen.",
 };
 
 export default function RootLayout({

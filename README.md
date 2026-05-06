@@ -1,4 +1,4 @@
-# Events Gallery
+# Eventig
 
 A Next.js web app for browsing scraped events with calendar views, analytics, and Google OAuth.
 
