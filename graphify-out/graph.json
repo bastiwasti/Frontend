@@ -1546,7 +1546,7 @@
       "label": "GET()",
       "file_type": "code",
       "source_file": "src/app/api/events/route.ts",
-      "source_location": "L5",
+      "source_location": "L4",
       "id": "events_route_get",
       "community": 3,
       "norm_label": "get()"
@@ -1631,6 +1631,24 @@
       "id": "stats_route_parseuserlist",
       "community": 3,
       "norm_label": "parseuserlist()"
+    },
+    {
+      "label": "route.ts",
+      "file_type": "code",
+      "source_file": "src/app/api/user-ratings/route.ts",
+      "source_location": "L1",
+      "id": "src_app_api_user_ratings_route_ts",
+      "community": 3,
+      "norm_label": "route.ts"
+    },
+    {
+      "label": "GET()",
+      "file_type": "code",
+      "source_file": "src/app/api/user-ratings/route.ts",
+      "source_location": "L5",
+      "id": "user_ratings_route_get",
+      "community": 3,
+      "norm_label": "get()"
     },
     {
       "label": "layout.tsx",
@@ -2554,7 +2572,7 @@
       "label": "useEvents()",
       "file_type": "code",
       "source_file": "src/hooks/use-events.ts",
-      "source_location": "L6",
+      "source_location": "L7",
       "id": "hooks_use_events_useevents",
       "community": 5,
       "norm_label": "useevents()"
@@ -2594,6 +2612,24 @@
       "id": "hooks_use_runs_useruns",
       "community": 18,
       "norm_label": "useruns()"
+    },
+    {
+      "label": "use-user-ratings.ts",
+      "file_type": "code",
+      "source_file": "src/hooks/use-user-ratings.ts",
+      "source_location": "L1",
+      "id": "src_hooks_use_user_ratings_ts",
+      "community": 5,
+      "norm_label": "use-user-ratings.ts"
+    },
+    {
+      "label": "useUserRatings()",
+      "file_type": "code",
+      "source_file": "src/hooks/use-user-ratings.ts",
+      "source_location": "L7",
+      "id": "hooks_use_user_ratings_useuserratings",
+      "community": 5,
+      "norm_label": "useuserratings()"
     },
     {
       "label": "analytics-utils.ts",
@@ -4644,36 +4680,14 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "src/app/api/events/route.ts",
-      "source_location": "L3",
-      "weight": 1.0,
-      "source": "src_app_api_events_route_ts",
-      "target": "lib_auth_getsessionemail",
-      "confidence_score": 1.0
-    },
-    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/app/api/events/route.ts",
-      "source_location": "L5",
+      "source_location": "L4",
       "weight": 1.0,
       "source": "src_app_api_events_route_ts",
       "target": "events_route_get",
       "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "INFERRED",
-      "confidence_score": 0.8,
-      "source_file": "src/app/api/events/route.ts",
-      "source_location": "L44",
-      "weight": 1.0,
-      "source": "events_route_get",
-      "target": "lib_auth_getsessionemail"
     },
     {
       "relation": "contains",
@@ -4768,6 +4782,49 @@
       "source": "stats_route_get",
       "target": "stats_route_parseuserlist",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/user-ratings/route.ts",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "src_app_api_user_ratings_route_ts",
+      "target": "lib_db_query",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/user-ratings/route.ts",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "src_app_api_user_ratings_route_ts",
+      "target": "lib_auth_getsessionemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/app/api/user-ratings/route.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_app_api_user_ratings_route_ts",
+      "target": "user_ratings_route_get",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/app/api/user-ratings/route.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "user_ratings_route_get",
+      "target": "lib_auth_getsessionemail"
     },
     {
       "relation": "imports",
@@ -5942,14 +5999,36 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/use-events.ts",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "src_hooks_use_events_ts",
+      "target": "hooks_use_user_ratings_useuserratings",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/hooks/use-events.ts",
-      "source_location": "L6",
+      "source_location": "L7",
       "weight": 1.0,
       "source": "src_hooks_use_events_ts",
       "target": "hooks_use_events_useevents",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/hooks/use-events.ts",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "hooks_use_events_useevents",
+      "target": "hooks_use_user_ratings_useuserratings"
     },
     {
       "relation": "contains",
@@ -5969,6 +6048,16 @@
       "weight": 1.0,
       "source": "src_hooks_use_runs_ts",
       "target": "hooks_use_runs_useruns",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/hooks/use-user-ratings.ts",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_hooks_use_user_ratings_ts",
+      "target": "hooks_use_user_ratings_useuserratings",
       "confidence_score": 1.0
     },
     {
@@ -6083,5 +6172,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4373bc3"
+  "built_at_commit": "1ef1c4d"
 }

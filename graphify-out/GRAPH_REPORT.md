@@ -1,15 +1,15 @@
 # Graph Report - .  (2026-05-06)
 
 ## Corpus Check
-- Corpus is ~21,131 words - fits in a single context window. You may not need a graph.
+- Corpus is ~21,403 words - fits in a single context window. You may not need a graph.
 
 ## Summary
-- 309 nodes · 320 edges · 35 communities (30 shown, 5 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 6 edges (avg confidence: 0.8)
+- 313 nodes · 325 edges · 35 communities (30 shown, 5 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `4373bc3`
+- Built from commit: `1ef1c4d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -41,9 +41,9 @@
 2. `cn()` - 16 edges
 3. `Graph Report - .  (2026-05-06)` - 10 edges
 4. `Deployment` - 9 edges
-5. `Google OAuth Setup` - 8 edges
-6. `Schema` - 8 edges
-7. `query()` - 8 edges
+5. `query()` - 9 edges
+6. `Google OAuth Setup` - 8 edges
+7. `Schema` - 8 edges
 8. `Per-User Star/Rating System` - 7 edges
 9. `Architecture` - 6 edges
 10. `Eventig` - 5 edges
@@ -52,7 +52,7 @@
 - `PATCH()` --calls--> `getSessionEmail()`  [INFERRED]
   src/app/api/events/[id]/rating/route.ts → src/lib/auth.ts
 - `GET()` --calls--> `getSessionEmail()`  [INFERRED]
-  src/app/api/events/route.ts → src/lib/auth.ts
+  src/app/api/user-ratings/route.ts → src/lib/auth.ts
 - `AnalyticsPage()` --calls--> `useEventsAndRuns()`  [INFERRED]
   src/app/(protected)/analytics/page.tsx → src/hooks/use-events-and-runs.ts
 - `AnalyticsPage()` --calls--> `useAnalyticsData()`  [INFERRED]
@@ -75,16 +75,16 @@ Cohesion: 0.08
 Nodes (18): API Queries, city_coordinates, city_road_distances, code:sql (SELECT r.*, s.duration, s.events_found, s.valid_events, s.st), code:bash (# Connect), code:sql (-- Materialized view/table for deduplicated events), code:sql (-- events), Database (+10 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.11
-Nodes (12): geocodeNominatim(), GET(), sleep(), geocodeNominatim(), GET(), sleep(), GET(), getSessionEmail() (+4 more)
+Cohesion: 0.1
+Nodes (12): geocodeNominatim(), GET(), sleep(), geocodeNominatim(), GET(), sleep(), getSessionEmail(), query() (+4 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.1
 Nodes (10): AnalyticsChart(), ChartControls(), KpiCards(), AnalyticsPage(), useAnalyticsData(), useEventsAndRuns(), useLocations(), getDimensionValue() (+2 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.16
-Nodes (7): useCityDistances(), useEvents(), EmptyState(), Select(), SelectItem(), SelectTrigger(), SelectValue()
+Cohesion: 0.15
+Nodes (8): useCityDistances(), useEvents(), useUserRatings(), EmptyState(), Select(), SelectItem(), SelectTrigger(), SelectValue()
 
 ### Community 6 - "Community 6"
 Cohesion: 0.11
