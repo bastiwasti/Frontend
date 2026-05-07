@@ -41,22 +41,14 @@ export async function GET(request: Request) {
       events = result.rows;
     } else {
       const result = await query(`
-        WITH ratings AS (
-          SELECT event_id,
-                 ROUND(AVG(rating)::numeric, 1)::float AS avg_rating,
-                 COUNT(*)::int                          AS rating_count
-          FROM event_ratings
-          GROUP BY event_id
-        )
-        SELECT ed.id, ed.name, ed.description, ed.location, ed.start_datetime,
-               ed.end_datetime, ed.category, ed.source, ed.city, ed.origin, ed.event_url,
-               ed.first_seen_at, ed.last_seen_at, ed.seen_count,
-               r.avg_rating,
-               COALESCE(r.rating_count, 0) AS rating_count
-        FROM events_distinct ed
-        LEFT JOIN ratings r ON r.event_id = ed.id
-        WHERE ed.start_datetime >= NOW() - INTERVAL '30 days'
-        ORDER BY ed.start_datetime ASC
+        SELECT id, name, description, location, start_datetime,
+               end_datetime, category, source, city, origin, event_url,
+               first_seen_at, last_seen_at, seen_count,
+               avg_rating,
+               COALESCE(rating_count, 0) AS rating_count
+        FROM events_distinct
+        WHERE start_datetime >= NOW() - INTERVAL '30 days'
+        ORDER BY start_datetime ASC
       `);
       events = result.rows;
     }
