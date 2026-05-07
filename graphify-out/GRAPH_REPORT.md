@@ -1,15 +1,15 @@
-# Graph Report - .  (2026-05-06)
+# Graph Report - .  (2026-05-07)
 
 ## Corpus Check
-- Corpus is ~21,403 words - fits in a single context window. You may not need a graph.
+- Corpus is ~21,340 words - fits in a single context window. You may not need a graph.
 
 ## Summary
-- 313 nodes · 325 edges · 35 communities (30 shown, 5 thin omitted)
+- 310 nodes · 324 edges · 36 communities (31 shown, 5 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1ef1c4d`
+- Built from commit: `276bd16`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -34,19 +34,19 @@
 - [[_COMMUNITY_Community 17|Community 17]]
 - [[_COMMUNITY_Community 18|Community 18]]
 - [[_COMMUNITY_Community 19|Community 19]]
-- [[_COMMUNITY_Community 25|Community 25]]
+- [[_COMMUNITY_Community 26|Community 26]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `Communities (35 total, 5 thin omitted)` - 17 edges
-2. `cn()` - 16 edges
+2. `cn()` - 15 edges
 3. `Graph Report - .  (2026-05-06)` - 10 edges
-4. `Deployment` - 9 edges
-5. `query()` - 9 edges
+4. `query()` - 10 edges
+5. `Deployment` - 9 edges
 6. `Google OAuth Setup` - 8 edges
 7. `Schema` - 8 edges
 8. `Per-User Star/Rating System` - 7 edges
-9. `Architecture` - 6 edges
-10. `Eventig` - 5 edges
+9. `getSessionEmail()` - 7 edges
+10. `Architecture` - 6 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `PATCH()` --calls--> `getSessionEmail()`  [INFERRED]
@@ -57,42 +57,42 @@
   src/app/(protected)/analytics/page.tsx → src/hooks/use-events-and-runs.ts
 - `AnalyticsPage()` --calls--> `useAnalyticsData()`  [INFERRED]
   src/app/(protected)/analytics/page.tsx → src/hooks/use-analytics-data.ts
-- `formatEventDateTime()` --calls--> `formatDate()`  [INFERRED]
-  src/lib/event-utils.ts → src/components/calendar/day-events-modal.tsx
+- `getUserRatings()` --calls--> `getSessionEmail()`  [INFERRED]
+  src/app/(protected)/page.tsx → src/lib/auth.ts
 
-## Communities (35 total, 5 thin omitted)
+## Communities (36 total, 5 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.07
-Nodes (4): cn(), Calendar(), Popover(), PopoverTrigger()
+Cohesion: 0.09
+Nodes (16): geocodeNominatim(), GET(), sleep(), geocodeNominatim(), GET(), sleep(), getSessionEmail(), query() (+8 more)
 
 ### Community 1 - "Community 1"
+Cohesion: 0.08
+Nodes (4): cn(), Calendar(), Popover(), PopoverTrigger()
+
+### Community 2 - "Community 2"
 Cohesion: 0.07
 Nodes (26): Communities (35 total, 5 thin omitted), Community 0 - "Community 0", Community 10 - "Community 10", Community 11 - "Community 11", Community 12 - "Community 12", Community 13 - "Community 13", Community 14 - "Community 14", Community 15 - "Community 15" (+18 more)
 
-### Community 2 - "Community 2"
+### Community 3 - "Community 3"
 Cohesion: 0.08
 Nodes (18): API Queries, city_coordinates, city_road_distances, code:sql (SELECT r.*, s.duration, s.events_found, s.valid_events, s.st), code:bash (# Connect), code:sql (-- Materialized view/table for deduplicated events), code:sql (-- events), Database (+10 more)
 
-### Community 3 - "Community 3"
-Cohesion: 0.1
-Nodes (12): geocodeNominatim(), GET(), sleep(), geocodeNominatim(), GET(), sleep(), getSessionEmail(), query() (+4 more)
-
 ### Community 4 - "Community 4"
-Cohesion: 0.1
+Cohesion: 0.12
 Nodes (10): AnalyticsChart(), ChartControls(), KpiCards(), AnalyticsPage(), useAnalyticsData(), useEventsAndRuns(), useLocations(), getDimensionValue() (+2 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.15
-Nodes (8): useCityDistances(), useEvents(), useUserRatings(), EmptyState(), Select(), SelectItem(), SelectTrigger(), SelectValue()
-
-### Community 6 - "Community 6"
 Cohesion: 0.11
 Nodes (18): Acceptance Tests, Auth & API:, Average Display:, code:bash (psql -h localhost -U jobsearch_readonly -d vmpostgres -c "SE), code:bash (psql -h localhost -U jobsearch_readonly -d vmpostgres -c "SE), code:bash (psql -h localhost -U jobsearch_readonly -d vmpostgres -c "SE), code:bash (psql -h localhost -U jobsearch_readonly -d vmpostgres -c "SE), code:bash (psql -h localhost -U jobsearch_readonly -d vmpostgres -c "SE) (+10 more)
 
-### Community 7 - "Community 7"
+### Community 6 - "Community 6"
 Cohesion: 0.11
 Nodes (17): code:block1 (Browser → nginx (SSL, port 443) → Next.js (port 3000) → Post), code:bash (# Check status), code:bash (cd /home/vscode/projects/Frontend), code:nginx (server {), code:bash (sudo nginx -t && sudo systemctl reload nginx), code:env (# OAuth Credentials), code:bash (# Service running?), code:bash (git log --oneline -5                    # Find previous good) (+9 more)
+
+### Community 7 - "Community 7"
+Cohesion: 0.21
+Nodes (5): EmptyState(), Select(), SelectItem(), SelectTrigger(), SelectValue()
 
 ### Community 8 - "Community 8"
 Cohesion: 0.12
@@ -134,17 +134,17 @@ Nodes (5): Architecture, Context, Database Schema, Files, Plan: Per-User Event R
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `Community 0` to `Community 8`, `Community 4`, `Community 5`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
-- **Why does `LoadingSpinner()` connect `Community 4` to `Community 5`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
-- **Why does `HometownImageBox()` connect `Community 11` to `Community 5`?**
-  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `cn()` connect `Community 1` to `Community 8`, `Community 7`?**
+  _High betweenness centrality (0.049) - this node is a cross-community bridge._
+- **Why does `CardDescription()` connect `Community 4` to `Community 1`, `Community 7`?**
+  _High betweenness centrality (0.023) - this node is a cross-community bridge._
+- **Why does `HometownImageBox()` connect `Community 11` to `Community 7`?**
+  _High betweenness centrality (0.018) - this node is a cross-community bridge._
 - **What connects `code:bash (npm run build)`, `code:bash (sudo systemctl restart frontend.service)`, `code:bash (sudo systemctl status frontend.service)` to the rest of the system?**
   _77 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
-- **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+- **Should `Community 2` be split into smaller, more focused modules?**
+  _Cohesion score 0.07 - nodes in this community are weakly interconnected._
