@@ -1,15 +1,15 @@
 # Graph Report - .  (2026-05-07)
 
 ## Corpus Check
-- Corpus is ~21,340 words - fits in a single context window. You may not need a graph.
+- Corpus is ~21,373 words - fits in a single context window. You may not need a graph.
 
 ## Summary
 - 310 nodes · 324 edges · 36 communities (31 shown, 5 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.8)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `276bd16`
+- Built from commit: `37af26a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -37,9 +37,9 @@
 - [[_COMMUNITY_Community 26|Community 26]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `Communities (35 total, 5 thin omitted)` - 17 edges
+1. `Communities (36 total, 5 thin omitted)` - 17 edges
 2. `cn()` - 15 edges
-3. `Graph Report - .  (2026-05-06)` - 10 edges
+3. `Graph Report - .  (2026-05-07)` - 10 edges
 4. `query()` - 10 edges
 5. `Deployment` - 9 edges
 6. `Google OAuth Setup` - 8 edges
@@ -49,16 +49,16 @@
 10. `Architecture` - 6 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `PATCH()` --calls--> `getSessionEmail()`  [INFERRED]
+- `PATCH()` --calls--> `getSessionEmail()`  [EXTRACTED]
   src/app/api/events/[id]/rating/route.ts → src/lib/auth.ts
-- `GET()` --calls--> `getSessionEmail()`  [INFERRED]
+- `GET()` --calls--> `getSessionEmail()`  [EXTRACTED]
   src/app/api/user-ratings/route.ts → src/lib/auth.ts
-- `AnalyticsPage()` --calls--> `useEventsAndRuns()`  [INFERRED]
+- `formatEventDateTime()` --calls--> `formatDate()`  [INFERRED]
+  src/lib/event-utils.ts → src/components/calendar/day-events-modal.tsx
+- `AnalyticsPage()` --calls--> `useEventsAndRuns()`  [EXTRACTED]
   src/app/(protected)/analytics/page.tsx → src/hooks/use-events-and-runs.ts
-- `AnalyticsPage()` --calls--> `useAnalyticsData()`  [INFERRED]
+- `AnalyticsPage()` --calls--> `useAnalyticsData()`  [EXTRACTED]
   src/app/(protected)/analytics/page.tsx → src/hooks/use-analytics-data.ts
-- `getUserRatings()` --calls--> `getSessionEmail()`  [INFERRED]
-  src/app/(protected)/page.tsx → src/lib/auth.ts
 
 ## Communities (36 total, 5 thin omitted)
 
@@ -72,7 +72,7 @@ Nodes (4): cn(), Calendar(), Popover(), PopoverTrigger()
 
 ### Community 2 - "Community 2"
 Cohesion: 0.07
-Nodes (26): Communities (35 total, 5 thin omitted), Community 0 - "Community 0", Community 10 - "Community 10", Community 11 - "Community 11", Community 12 - "Community 12", Community 13 - "Community 13", Community 14 - "Community 14", Community 15 - "Community 15" (+18 more)
+Nodes (26): Communities (36 total, 5 thin omitted), Community 0 - "Community 0", Community 10 - "Community 10", Community 11 - "Community 11", Community 12 - "Community 12", Community 13 - "Community 13", Community 14 - "Community 14", Community 15 - "Community 15" (+18 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.08
