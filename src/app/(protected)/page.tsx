@@ -16,7 +16,14 @@ async function getEvents(): Promise<Event[]> {
     WHERE start_datetime >= NOW() - INTERVAL '30 days'
     ORDER BY start_datetime ASC
   `);
-  return result.rows;
+  return result.rows.map((row: Record<string, unknown>) => {
+    for (const key of ['start_datetime', 'end_datetime', 'first_seen_at', 'last_seen_at', 'created_at']) {
+      if (row[key] instanceof Date) {
+        row[key] = (row[key] as Date).toISOString();
+      }
+    }
+    return row as unknown as Event;
+  });
 }
 
 async function getUserRatings(): Promise<Map<number, number>> {
