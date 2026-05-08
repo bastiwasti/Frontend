@@ -20,7 +20,7 @@ export default function ProtectedLayout({
               <img src="/logo-mark.svg" alt="" className="h-8 w-8" />
               <span>Eventig</span>
             </div>
-            <span className="text-sm text-muted-foreground">Events für Familien</span>
+            <span className="hidden sm:inline text-sm text-muted-foreground">Events für Familien</span>
           </div>
           <div className="flex items-center gap-4">
             <Navigation />
@@ -28,7 +28,7 @@ export default function ProtectedLayout({
           </div>
         </div>
       </header>
-      <main className="relative z-10 flex-1">
+      <main className="relative z-10 flex-1 pb-16 md:pb-0">
         {children}
       </main>
       <Footer />

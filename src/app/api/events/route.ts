@@ -37,6 +37,7 @@ export async function GET(request: Request) {
         )
         SELECT * FROM ranked_events WHERE rn = 1
         ORDER BY start_datetime ASC
+        LIMIT 5000
       `);
       events = result.rows;
     } else {

@@ -16,10 +16,10 @@ export function StarFilterButtons({ minRating, onRatingChange }: StarFilterButto
           key={rating}
           onClick={() => onRatingChange(minRating === rating ? null : rating)}
           className={cn(
-            'flex items-center gap-0.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all border border-white/20 backdrop-blur-sm',
+            'flex items-center gap-0.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-all border',
             minRating === rating
-              ? 'bg-white/30 text-white shadow-lg'
-              : 'bg-transparent text-white/70 hover:bg-white/20'
+              ? 'bg-primary text-primary-foreground shadow-lg'
+              : 'bg-background text-muted-foreground hover:bg-muted'
           )}
           title={`${rating}+ stars`}
         >

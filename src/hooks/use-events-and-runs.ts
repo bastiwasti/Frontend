@@ -15,12 +15,14 @@ export function useEventsAndRuns(): {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+
     async function fetchData() {
       try {
         setIsLoading(true);
         const [eventsRes, runsRes] = await Promise.all([
-          fetch('/api/events?source=raw'),
-          fetch('/api/runs'),
+          fetch('/api/events?source=raw', { signal: controller.signal }),
+          fetch('/api/runs', { signal: controller.signal }),
         ]);
 
         if (!eventsRes.ok) {
@@ -48,6 +50,7 @@ export function useEventsAndRuns(): {
         setRuns(runsData);
         setError(null);
       } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         console.error('Error fetching data:', err);
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         setError(errorMessage);
@@ -58,6 +61,7 @@ export function useEventsAndRuns(): {
       }
     }
     fetchData();
+    return () => controller.abort();
   }, []);
 
   return { events, runs, isLoading, error };
